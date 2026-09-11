@@ -16,6 +16,29 @@ write-pseudocode, trace tables that mark cell by cell, and quick syntax drills.
 **Question generator** — unlimited new questions in exam style, with a difficulty dial from Foundation to
 Hardest, generated on demand for any topic and either paper. Requires the claude.ai hosted version.
 
+**Your pseudocode actually runs.** The app contains a complete interpreter for the 9618 notation —
+lexer, parser and evaluator, written from scratch, no dependencies. Loops loop, arrays fill, files are
+read and written, records and classes work, recursion recurses. Press **Run it** and you get the output,
+or a line-accurate error written the way a teacher would say it:
+
+| It catches | It says |
+|---|---|
+| `Count = 0` | `'=' cannot be used to store a value in a variable.` |
+| `NEXT j` after `FOR i` | `NEXT names 'j' but this FOR loop counts with 'i'.` |
+| reading an unset total | `'Total' has been declared but nothing has been put in it yet.` |
+| `FOR i <- 1 TO 6` on `ARRAY[1:5]` | `Index 6 is outside 'Scores', which runs from 1 to 5.` |
+| dividing by a zero count | `You cannot divide by zero. A count that is still 0 is the usual cause.` |
+| a loop that never ends | `Something inside the loop must change the value the condition tests.` |
+| `OPENFILE ... FOR WRITE` to add a record | the file is genuinely emptied, so you see the data loss |
+
+Questions that say data already exists — "an array that already holds the monthly rainfall" — really do
+have that data seeded when you run them, so the output means something.
+
+**Practice and exam behave differently on purpose.** In Practice you run your answer as often as you
+like, read the error, fix it, run again. In Exam mode the Run button is gone; when the timer stops every
+executable answer is run **once**, and code that does not run scores **zero** with its mark scheme
+locked. The error is shown afterwards so you know what to drill.
+
 **Exam mode** — a timed paper assembled from the bank, tips disabled, mark schemes sealed until the timer
 stops. Self-marked at the end with a per-topic breakdown.
 
