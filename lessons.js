@@ -66,7 +66,8 @@ end if`,
       acode:`IF Count = 0 THEN
     OUTPUT "None"
     Count <- Count + 1
-ENDIF`}
+ENDIF`,
+      run:{ setup:"DECLARE Count : INTEGER\nCount <- 0" }}
   ]
 },
 
@@ -204,7 +205,8 @@ INPUT TotalMins
 Hours <- DIV(TotalMins, 60)
 Mins  <- MOD(TotalMins, 60)
 
-OUTPUT Hours, " hours ", Mins, " minutes"`}
+OUTPUT Hours, " hours ", Mins, " minutes"`,
+      run:{ inputs:"155" }}
   ]
 },
 
@@ -279,7 +281,8 @@ CASE OF Coin
     50       : OUTPUT "Fifty cents"
     100      : OUTPUT "One dollar"
     OTHERWISE: OUTPUT "Coin not accepted"
-ENDCASE`}
+ENDCASE`,
+      run:{ inputs:"50" }}
   ]
 },
 
@@ -356,7 +359,8 @@ WHILE Number <> 0 DO
     INPUT Number
 ENDWHILE
 
-OUTPUT "Total is ", Total`}
+OUTPUT "Total is ", Total`,
+      run:{ inputs:"5\n7\n0" }}
   ]
 },
 
@@ -831,7 +835,8 @@ ENDWHILE
 
 CLOSEFILE "Scores.txt"
 
-OUTPUT "Largest score was ", Largest`}
+OUTPUT "Largest score was ", Largest`,
+      run:{ files:[{name:"Scores.txt", lines:["41","88","23"]}] }}
   ]
 },
 
@@ -1099,7 +1104,8 @@ WHILE Number >= 0 DO
     INPUT Number
 ENDWHILE
 
-OUTPUT "Largest: ", Largest, "  Count: ", Count`}
+OUTPUT "Largest: ", Largest, "  Count: ", Count`,
+      run:{ inputs:"4\n9\n-1" }}
   ]
 }
 ];

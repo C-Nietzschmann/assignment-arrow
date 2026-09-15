@@ -745,6 +745,7 @@ function Interp(opts){
   this.types = Object.create(null);
   this.classes = Object.create(null);
   this.enums = Object.create(null);
+  this.enumTypes = Object.create(null);
   this.steps = 0;
   this.depth = 0;
   this.offset = opts.offset || 0;
@@ -1301,9 +1302,14 @@ Interp.prototype.exec = function(n, scope){
         const k = name.toUpperCase();
         if (scope.vars[k]) this.warn(n.line, "'" + name + "' has already been declared.");
         if (!this.types[n.type] && !this.classes[n.type.toUpperCase()] &&
+            !this.enumTypes[n.type.toUpperCase()] &&
             ["INTEGER","REAL","CHAR","STRING","BOOLEAN","DATE"].indexOf(n.type) === -1)
           this.err(n.line, "'" + n.type + "' is not a data type I know.",
             "Use INTEGER, REAL, CHAR, STRING, BOOLEAN or DATE, or define it first with TYPE or CLASS.");
+        if (this.enumTypes[n.type.toUpperCase()]){
+          scope.vars[k] = { v:undefined, t:null, init:false };
+          return;
+        }
         const isRecType = !!this.types[n.type];
         const existing = scope.vars[k];
         if (existing && existing.init) return;    // re-declaring must not wipe a value
@@ -1450,7 +1456,10 @@ Interp.prototype.exec = function(n, scope){
     case "RecType":
       this.aboveIgcse(n.line, "Defining a record with TYPE");
       this.types[n.name] = n; return;
-    case "EnumType": n.values.forEach((v,i) => { this.enums[v.toUpperCase()] = i; }); return;
+    case "EnumType":
+      this.enumTypes[n.name.toUpperCase()] = n;
+      n.values.forEach((v,i) => { this.enums[v.toUpperCase()] = i; });
+      return;
 
     case "Class": {
       this.aboveIgcse(n.line, "Defining a CLASS");
@@ -1557,6 +1566,10 @@ Interp.prototype.hoist = function(block){
     if (s.kind === "Proc") this.procs[s.name.toUpperCase()] = s;
     else if (s.kind === "Func") this.funcs[s.name.toUpperCase()] = s;
     else if (s.kind === "RecType") this.types[s.name] = s;
+    else if (s.kind === "EnumType"){
+      this.enumTypes[s.name.toUpperCase()] = s;
+      s.values.forEach((v,i) => { this.enums[v.toUpperCase()] = i; });
+    }
   });
 };
 

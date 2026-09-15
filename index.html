@@ -555,6 +555,35 @@ table.ref td.d{ font-family:var(--prose); color:var(--ink-2); }
 .verdict.fail .vmark{ color:var(--pen); }
 .verdict .vtext{ font-family:var(--prose); font-size:.97rem; }
 
+/* ---------- library ---------- */
+.lib-group{ margin:30px 0 8px; display:flex; align-items:baseline; gap:10px; }
+.lib-group h2{ font-family:var(--display); font-size:1.05rem; font-weight:700;
+  letter-spacing:-.01em; margin:0; }
+.lib-group .n{ font-family:var(--mono); font-size:.76rem; color:var(--ink-3); }
+.lib-entry{ border:1px solid var(--rule); border-radius:6px; background:var(--surface);
+  padding:17px 19px; margin-bottom:10px; }
+.lib-head{ display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; margin-bottom:8px; }
+.lib-name{ font-family:var(--mono); font-size:1rem; font-weight:600; color:var(--pen); }
+.lib-sig{ font-family:var(--mono); font-size:.82rem; color:var(--ink-2); background:var(--surface-2);
+  border:1px solid var(--rule-soft); border-radius:4px; padding:7px 10px; margin-bottom:10px;
+  white-space:pre-wrap; overflow-x:auto; }
+.lib-what{ font-family:var(--prose); font-size:.98rem; line-height:1.6; margin:0 0 12px; }
+.lib-miss{ border-left:3px solid var(--warn); background:var(--warn-soft); padding:8px 12px;
+  font-family:var(--prose); font-size:.93rem; margin-top:10px; border-radius:0 4px 4px 0; }
+.lib-miss b{ font-family:var(--display); font-size:.7rem; letter-spacing:.09em;
+  text-transform:uppercase; color:var(--warn); display:block; margin-bottom:2px; }
+.lib-out{ display:flex; gap:10px; align-items:flex-start; margin-top:-4px; }
+.lib-out .k{ font-family:var(--display); font-size:.7rem; font-weight:700; letter-spacing:.09em;
+  text-transform:uppercase; color:var(--ink-3); flex:0 0 auto; padding-top:3px; }
+.lib-out pre{ margin:0; font-family:var(--mono); font-size:.83rem; color:var(--ok);
+  white-space:pre-wrap; flex:1; }
+.dialect-table td.a{ font-family:var(--mono); font-size:.82rem; color:var(--syn-kw); white-space:nowrap; }
+.dialect-table td.b{ font-family:var(--mono); font-size:.82rem; color:var(--syn-type); white-space:nowrap; }
+.snip{ border:1px solid var(--rule); border-radius:6px; background:var(--surface);
+  padding:16px 18px; margin-bottom:10px; }
+.snip h3{ font-family:var(--display); font-size:.98rem; font-weight:700; margin:0 0 3px; }
+.snip p{ font-family:var(--prose); font-size:.93rem; color:var(--ink-2); margin:0 0 10px; }
+
 /* ---------- syllabus level ---------- */
 .levelbar{ padding:13px 20px; border-bottom:1px solid var(--rule); }
 .levelbar .label{ margin-bottom:7px; }
@@ -803,15 +832,19 @@ table.ref td.d{ font-family:var(--prose); color:var(--ink-2); }
       </div>
     </section>
 
-    <!-- ---------- 04 REFERENCE ---------- -->
+    <!-- ---------- 04 LIBRARY ---------- -->
     <section class="view" id="view-reference">
       <div class="wrap">
         <header class="page-head">
           <div class="label">Section 04</div>
-          <h1>Syntax reference</h1>
-          <p>Everything the 9618 pseudocode uses, on one page. Filter it while you work.</p>
+          <h1>The library</h1>
+          <p>Every keyword and every built-in function for your course, each with an example you can run and edit. Nothing here is a claim you have to take on trust &mdash; press Run and watch it work.</p>
         </header>
-        <input type="search" id="refSearch" class="sel" placeholder="Filter &mdash; try WHILE, array, file, class&hellip;" style="width:100%;margin-bottom:22px;padding:11px 13px">
+        <input type="search" id="refSearch" class="sel" placeholder="Filter &mdash; try WHILE, substring, file, class&hellip;" style="width:100%;margin-bottom:8px;padding:11px 13px">
+        <div class="chips" id="libScope" style="margin-bottom:20px">
+          <button class="chip" data-libscope="mine" aria-pressed="true">My course only</button>
+          <button class="chip" data-libscope="all" aria-pressed="false">Show every course</button>
+        </div>
         <div id="refBody"></div>
       </div>
     </section>
@@ -880,113 +913,6 @@ const DIFF_BRIEF = {
   5:"the hardest band, 8-10 marks, the sort that separates the top grades: multiple subroutines or data structures, and marks specifically for efficiency, validation and boundary handling"
 };
 
-/* ============================================================================
-   SYNTAX REFERENCE
-   ========================================================================== */
-const REFERENCE = [
-  {group:"Comments and identifiers", rows:[
-    ["// text","A comment. Everything after // on that line is ignored."],
-    ["MyVariable","Identifiers start with a letter, then letters, digits or underscores. CamelCase by convention."]
-  ]},
-  {group:"Declaration and assignment", rows:[
-    ["DECLARE Name : TYPE","Create a variable of the given type."],
-    ["CONSTANT Name = Value","A value fixed for the whole program. Uses = and has no type."],
-    ["Name <- Value","Assignment. The only way to put a value into a variable."]
-  ]},
-  {group:"Data types", rows:[
-    ["INTEGER","A whole number, e.g. 7 or -3."],
-    ["REAL","A number with a fractional part, e.g. 3.75."],
-    ["CHAR","Exactly one character, in single quotes: 'A'."],
-    ["STRING","Any number of characters, in double quotes: \"Hello\"."],
-    ["BOOLEAN","TRUE or FALSE, written without quotes."],
-    ["DATE","A calendar date, written dd/mm/yyyy."]
-  ]},
-  {group:"Arrays", rows:[
-    ["DECLARE A : ARRAY[1:30] OF INTEGER","A one-dimensional array of 30 integers, indexed 1 to 30."],
-    ["DECLARE G : ARRAY[1:8, 1:5] OF REAL","Two dimensions: 8 rows of 5 columns."],
-    ["A[3] <- 10","Assign to one element."],
-    ["G[3, 4] <- 2.5","Two-dimensional access, row first."]
-  ]},
-  {group:"Input and output", rows:[
-    ["INPUT Variable","Read a value from the user. Takes a variable only - no prompt."],
-    ["OUTPUT Value, Value, ...","Display one or more values."]
-  ]},
-  {group:"Operators", rows:[
-    ["+  -  *  /  ^","Add, subtract, multiply, divide, raise to a power."],
-    ["DIV(x, y)","The whole-number part of x divided by y."],
-    ["MOD(x, y)","The remainder after dividing x by y."],
-    ["=  <>  <  <=  >  >=","Comparison. Note that not-equal is <>, never != or /=."],
-    ["AND   OR   NOT","Logical operators."],
-    ["&","Joins two strings together."]
-  ]},
-  {group:"Selection", rows:[
-    ["IF cond THEN ... ENDIF","Basic selection. THEN sits on the IF line."],
-    ["IF cond THEN ... ELSE ... ENDIF","Two-way selection."],
-    ["CASE OF Var ... ENDCASE","Compare one variable against several specific values."],
-    ["value : statement","One branch of a CASE."],
-    ["low TO high : statement","A range branch inside a CASE."],
-    ["OTHERWISE : statement","The catch-all branch. Almost always worth a mark."]
-  ]},
-  {group:"Iteration", rows:[
-    ["FOR i <- 1 TO 10 ... NEXT i","Fixed repetition. NEXT must name the same counter."],
-    ["FOR i <- 10 TO 1 STEP -1","STEP changes the size and direction of each step."],
-    ["WHILE cond DO ... ENDWHILE","Condition tested first. May run zero times."],
-    ["REPEAT ... UNTIL cond","Condition tested last. Always runs at least once."]
-  ]},
-  {group:"Subroutines", rows:[
-    ["PROCEDURE Name(p : TYPE) ... ENDPROCEDURE","A routine that performs actions."],
-    ["CALL Name(args)","Invoke a procedure. The brackets stay even when empty."],
-    ["FUNCTION Name(p : TYPE) RETURNS TYPE","A routine that gives a value back."],
-    ["RETURN value","Send the result back and leave the function."],
-    ["ENDFUNCTION","Closes a function."],
-    ["BYVAL p : TYPE","The routine gets a copy. Changes do not reach the caller."],
-    ["BYREF p : TYPE","The routine works on the original. Changes do reach the caller."]
-  ]},
-  {group:"Built-in functions", rows:[
-    ["LENGTH(s)","Number of characters in s."],
-    ["LEFT(s, n)","The first n characters of s."],
-    ["RIGHT(s, n)","The last n characters of s."],
-    ["MID(s, start, n)","n characters from s, beginning at position start. Counted from 1."],
-    ["TO_UPPER(s) / TO_LOWER(s)","Case conversion."],
-    ["NUM_TO_STRING(x)","Convert a number to its string form."],
-    ["STRING_TO_NUM(s)","Convert a string to a number."],
-    ["IS_NUM(s)","TRUE if the string can be converted to a number."],
-    ["ASC(c)","The character code of c. ASC('A') is 65."],
-    ["CHR(n)","The character with code n. CHR(66) is 'B'."],
-    ["INT(x)","Discards the fractional part of a REAL."],
-    ["RAND(n)","A random REAL from 0 up to but not including n."]
-  ]},
-  {group:"File handling", rows:[
-    ["OPENFILE \"f.txt\" FOR READ","Open for reading from the start."],
-    ["OPENFILE \"f.txt\" FOR WRITE","Open for writing. Destroys any existing contents."],
-    ["OPENFILE \"f.txt\" FOR APPEND","Open to add to the end, keeping what is there."],
-    ["READFILE \"f.txt\", Var","Read the next line into Var."],
-    ["WRITEFILE \"f.txt\", Data","Write one line."],
-    ["EOF(\"f.txt\")","TRUE once there is nothing left to read."],
-    ["CLOSEFILE \"f.txt\"","Close the file. Forgetting this loses marks."],
-    ["OPENFILE \"f.dat\" FOR RANDOM","Open a random-access file."],
-    ["SEEK \"f.dat\", address","Move to a record position."],
-    ["GETRECORD / PUTRECORD","Read or write the record at the current position."]
-  ]},
-  {group:"User-defined types", rows:[
-    ["TYPE Name ... ENDTYPE","Define a record: several fields of different types."],
-    ["Variable.Field <- value","Reach a field of a record."],
-    ["Arr[i].Field <- value","Reach a field of a record inside an array."],
-    ["TYPE T = (a, b, c)","An enumerated type. Values are written without quotes."],
-    ["TYPE P = ^T","A pointer to something of type T."]
-  ]},
-  {group:"Classes and objects", rows:[
-    ["CLASS Name ... ENDCLASS","Define a class."],
-    ["PRIVATE Attr : TYPE","An attribute. Always private in a well-written answer."],
-    ["PUBLIC PROCEDURE NEW(p : TYPE)","The constructor. Always named NEW."],
-    ["PUBLIC FUNCTION GetX() RETURNS TYPE","A getter."],
-    ["Obj <- NEW ClassName(args)","Create an object from the class."],
-    ["CALL Obj.SomeProcedure()","Invoke a procedure method. CALL is required."],
-    ["Obj.SomeFunction()","Invoke a function method. No CALL - it returns a value."],
-    ["CLASS Sub INHERITS Super","Inheritance."],
-    ["CALL SUPER.NEW(args)","Run the parent constructor from the subclass."]
-  ]}
-];
 
 /* ============================================================================
    ENGINE
@@ -1244,22 +1170,98 @@ el("nextLesson").addEventListener("click", () => renderLesson(Math.min(activeLes
 /* ============================================================================
    REFERENCE
    ========================================================================== */
+let libScope = "mine";
+const LIB_INDEX = {};
+let PENDING_SNIPPET = null;
+
+function levelBadges(levels){
+  const names = { igcse:"IGCSE", as:"AS", a2:"A Level" };
+  return (levels || []).map(l => '<span class="tag">' + names[l] + "</span>").join(" ");
+}
+function libVisible(levels){
+  if (libScope === "all") return true;
+  const seen = levelSees(STATE.level);
+  return (levels || []).some(l => seen.indexOf(l) !== -1);
+}
+
 function renderReference(filter){
   const f = (filter || "").trim().toLowerCase();
+  const hit = (txt) => !f || String(txt).toLowerCase().indexOf(f) !== -1;
   let h = "";
-  REFERENCE.forEach(function(g){
-    const rows = g.rows.filter(r =>
-      !f || r[0].toLowerCase().indexOf(f) !== -1 || r[1].toLowerCase().indexOf(f) !== -1
-        || g.group.toLowerCase().indexOf(f) !== -1);
-    if (!rows.length) return;
-    h += '<div class="label" style="margin:24px 0 9px">' + esc(g.group) + "</div>";
-    h += '<div class="ref-scroll"><table class="ref"><thead><tr><th style="width:42%">Notation</th><th>Meaning</th></tr></thead><tbody>';
-    rows.forEach(r => { h += '<tr><td class="c">' + hl(r[0]) + '</td><td class="d">' + esc(r[1]) + "</td></tr>"; });
-    h += "</tbody></table></div>";
+
+  const showDialect = (STATE.level === "igcse" || libScope === "all") && !f;
+  if (showDialect){
+    h += '<details class="disclose" style="border-top:0;padding-top:0;margin-top:0;margin-bottom:18px">';
+    h += "<summary>IGCSE and A Level write some things differently &mdash; see the map</summary>";
+    h += '<div class="disclose-body"><div class="ref-scroll"><table class="ref dialect-table"><thead><tr>';
+    h += "<th>What you want</th><th>IGCSE 0478</th><th>AS / A Level 9618</th><th>Note</th></tr></thead><tbody>";
+    (window.DIALECT_MAP || []).forEach(r => {
+      h += '<tr><td class="d">' + esc(r[0]) + '</td><td class="a">' + esc(r[1]) +
+           '</td><td class="b">' + esc(r[2]) + '</td><td class="d">' + esc(r[3]) + "</td></tr>";
+    });
+    h += "</tbody></table></div></div></details>";
+  }
+
+  let shown = 0;
+  (window.LIBRARY || []).forEach(function(g){
+    const entries = g.entries.filter(e =>
+      libVisible(e.levels) && (hit(e.name) || hit(e.what) || hit(e.sig) || hit(g.group) || hit(e.ex)));
+    if (!entries.length) return;
+    h += '<div class="lib-group"><h2>' + esc(g.group) + '</h2><span class="n">' + entries.length + "</span></div>";
+    entries.forEach(function(e){
+      shown++;
+      const eid = "lib" + shown;
+      LIB_INDEX[eid] = e;
+      h += '<div class="lib-entry">';
+      h += '<div class="lib-head"><span class="lib-name">' + esc(e.name) + "</span>" + levelBadges(e.levels) + "</div>";
+      h += '<div class="lib-sig">' + hl(e.sig) + "</div>";
+      h += '<p class="lib-what">' + esc(e.what) + "</p>";
+      h += codeBlock(e.ex);
+      if (e.inputs) h += '<p class="trace-key" style="margin:-6px 0 10px">Reading this input: ' +
+                         esc(String(e.inputs).split("\n").join(" then ")) + "</p>";
+      h += '<div class="lib-out"><span class="k">Outputs</span><pre>' + esc(e.out) + "</pre></div>";
+      h += '<div class="btn-row" style="margin-top:12px">';
+      h += '<button class="btn btn-sm" data-libtry="' + eid + '">Run it</button>';
+      h += '<button class="btn btn-sm btn-ghost" data-libcopy="' + eid + '">Send to the editor</button>';
+      h += '<span class="label" id="libmsg_' + eid + '"></span></div>';
+      h += '<div id="libout_' + eid + '"></div>';
+      if (e.miss) h += '<div class="lib-miss"><b>Watch out</b>' + esc(e.miss) + "</div>";
+      h += "</div>";
+    });
   });
-  el("refBody").innerHTML = h || '<div class="empty">Nothing matches that. Try a keyword such as WHILE, array or file.</div>';
+
+  const snips = (window.SNIPPETS || []).filter(sn =>
+    libVisible(sn.levels) && (hit(sn.name) || hit(sn.what) || hit(sn.code)));
+  if (snips.length){
+    h += '<div class="lib-group"><h2>Patterns worth knowing by heart</h2><span class="n">' + snips.length + "</span></div>";
+    snips.forEach(function(sn){
+      h += '<div class="snip"><h3>' + esc(sn.name) + "</h3><p>" + esc(sn.what) + "</p>" + codeBlock(sn.code) + "</div>";
+    });
+    shown += snips.length;
+  }
+
+  el("refBody").innerHTML = shown
+    ? h
+    : '<div class="empty">Nothing matches that. Try a keyword such as WHILE, array or file &mdash; or switch to &ldquo;Show every course&rdquo; above.</div>';
+
+  el("refBody").querySelectorAll("[data-libtry]").forEach(b => b.addEventListener("click", function(){
+    const e = LIB_INDEX[b.dataset.libtry];
+    const r = runAnswer({ run:{ inputs:e.inputs, files:e.files } }, e.ex, e.inputs);
+    el("libout_" + b.dataset.libtry).innerHTML = consoleHtml(r);
+  }));
+  el("refBody").querySelectorAll("[data-libcopy]").forEach(b => b.addEventListener("click", function(){
+    PENDING_SNIPPET = LIB_INDEX[b.dataset.libcopy].ex;
+    el("libmsg_" + b.dataset.libcopy).textContent = "Ready - open any practice question and press Paste";
+  }));
 }
+
 el("refSearch").addEventListener("input", e => renderReference(e.target.value));
+el("libScope").querySelectorAll("[data-libscope]").forEach(b => b.addEventListener("click", function(){
+  libScope = b.dataset.libscope;
+  el("libScope").querySelectorAll("[data-libscope]").forEach(x =>
+    x.setAttribute("aria-pressed", x.dataset.libscope === libScope ? "true" : "false"));
+  renderReference(el("refSearch").value);
+}));
 
 /* ============================================================================
    AI LAYER — lights up inside claude.ai, absent everywhere else.
@@ -1329,6 +1331,7 @@ function renderQuestionCard(q, mode){
     h += '<button class="ins" data-ins="FOR i ← 1 TO n\n    \nNEXT i" data-for="' + idp + '">FOR</button>';
     h += '<button class="ins" data-ins="WHILE  DO\n    \nENDWHILE" data-for="' + idp + '">WHILE</button>';
     h += '<button class="ins" data-ins="REPEAT\n    \nUNTIL " data-for="' + idp + '">REPEAT</button>';
+    h += '<button class="ins" data-paste="' + idp + '" title="Paste what you sent from the library">Paste</button>';
     h += '<span class="hint">Tab indents &middot; type &lt;- for the arrow</span>';
     h += "</div><textarea class=\"editor\" id=\"ta_" + idp + "\" spellcheck=\"false\" placeholder=\"Write your pseudocode here. Declarations first, then the structure, then the detail.\"></textarea></div>";
 
@@ -1469,6 +1472,16 @@ function wireQuestionCard(q, root){
   const clearBtn = root.querySelector('[data-clearrun="' + idp + '"]');
   if (clearBtn) clearBtn.addEventListener("click", function(){
     root.querySelector("#con_" + idp).innerHTML = "";
+  });
+
+  const pasteBtn = root.querySelector('[data-paste="' + idp + '"]');
+  if (pasteBtn) pasteBtn.addEventListener("click", function(){
+    if (!PENDING_SNIPPET){
+      pasteBtn.textContent = "nothing sent yet";
+      setTimeout(() => { pasteBtn.textContent = "Paste"; }, 1600);
+      return;
+    }
+    insertAt(root.querySelector("#ta_" + idp), PENDING_SNIPPET);
   });
 
   root.querySelectorAll('[data-ins][data-for="' + idp + '"]').forEach(function(b){
