@@ -14,8 +14,11 @@ const root = path.resolve(here, "..");
 const require = createRequire(import.meta.url);
 require(path.join(root, "interpreter.js"));
 require(path.join(root, "bank.js"));
+require(path.join(root, "bank-igcse.js"));
+require(path.join(root, "bank-extra.js"));
 require(path.join(root, "library.js"));
 require(path.join(root, "lessons.js"));
+require(path.join(root, "lessons-igcse.js"));
 
 const { PseudoRun } = globalThis;
 const RED = "\x1b[31m", GRN = "\x1b[32m", DIM = "\x1b[2m", OFF = "\x1b[0m";
@@ -25,7 +28,7 @@ const failures = [];
 function fail(where, detail){ failures.push({ where, detail }); }
 
 /* ---------- 1. every question's model answer must run ---------- */
-const QUESTIONS = (globalThis.QUESTIONS_ALEVEL || []).concat(globalThis.QUESTIONS_IGCSE || []);
+const QUESTIONS = (globalThis.QUESTIONS_ALEVEL || []).concat(globalThis.QUESTIONS_IGCSE || [], globalThis.QUESTIONS_EXTRA || []);
 const RUNSPECS  = Object.assign({}, globalThis.RUNSPECS_ALEVEL || {}, globalThis.RUNSPECS_IGCSE || {});
 const DIFF      = Object.assign({}, globalThis.DIFFICULTY_ALEVEL || {}, globalThis.DIFFICULTY_IGCSE || {});
 Object.keys(RUNSPECS).forEach(id => {
@@ -52,7 +55,7 @@ for (const q of QUESTIONS){
   seenIds.add(q.id);
 
   if (!q.level)  fail("question " + q.id, "no level tag");
-  if (!DIFF[q.id]) fail("question " + q.id, "no difficulty rating");
+  if (!DIFF[q.id] && !q.diff) fail("question " + q.id, "no difficulty rating");
   if (!q.title || !q.stem) fail("question " + q.id, "missing title or stem");
   if (!Array.isArray(q.tips) || q.tips.length !== 3)
     fail("question " + q.id, "expected 3 tips, found " + (q.tips ? q.tips.length : 0));

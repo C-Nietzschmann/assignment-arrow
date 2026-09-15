@@ -92,7 +92,31 @@ function lex(src){
     throw PErr(line, "I do not recognise the character '" + c + "'.");
   }
   push("NL"); push("EOF");
-  return toks;
+  /* Long expressions wrap across lines in real papers. Drop a line break
+     when the expression obviously continues - the line ends with a binary
+     operator, or the next line begins with one. */
+  const ENDS  = ["&","+","-","*","/","^","=","<>","<","<=",">",">=",",","("];
+  const STARTS= ["&","+","*","/","^",",",")"];
+  const KWJOIN= ["AND","OR"];
+  const joined = [];
+  for (let i = 0; i < toks.length; i++){
+    const t = toks[i];
+    if (t.t === "NL"){
+      let p = joined.length - 1;
+      while (p >= 0 && joined[p].t === "NL") p--;
+      const prev = p >= 0 ? joined[p] : null;
+      let q = i + 1;
+      while (q < toks.length && toks[q].t === "NL") q++;
+      const next = q < toks.length ? toks[q] : null;
+      const prevJoins = prev && ((prev.t === "OP" && ENDS.indexOf(prev.v) !== -1) ||
+                                 (prev.t === "KW" && KWJOIN.indexOf(prev.v) !== -1));
+      const nextJoins = next && ((next.t === "OP" && STARTS.indexOf(next.v) !== -1) ||
+                                 (next.t === "KW" && KWJOIN.indexOf(next.v) !== -1));
+      if (prevJoins || nextJoins) continue;
+    }
+    joined.push(t);
+  }
+  return joined;
 }
 
 /* --------------------------------------------------------------- PARSER -- */
@@ -190,6 +214,9 @@ Parser.prototype = {
         case "OPENFILE":  return this.sOpen();
         case "READFILE":  return this.sReadFile();
         case "WRITEFILE": return this.sWriteFile();
+        case "SEEK":      return this.sRecStmt("Seek");
+        case "GETRECORD": return this.sRecStmt("GetRecord");
+        case "PUTRECORD": return this.sRecStmt("PutRecord");
         case "CLOSEFILE": { this.next(); const f = this.expr(); this.endLine();
                             return { kind:"CloseFile", file:f, line:ln }; }
         case "ENDIF": case "ENDWHILE": case "NEXT": case "UNTIL": case "ENDCASE":
@@ -534,6 +561,20 @@ Parser.prototype = {
     return { kind:"Class", name:name, parent:parent, attrs:attrs, methods:methods, line:ln };
   },
 
+  /* SEEK f, address   GETRECORD f, var   PUTRECORD f, var */
+  sRecStmt(kind){
+    const ln = this.line;
+    const word = this.next().v;
+    const file = this.expr();
+    if (!this.eat("OP",",")) throw PErr(ln, word + " needs a comma between the file and the " +
+      (kind === "Seek" ? "address" : "variable") + ".",
+      kind === "Seek" ? 'For example  SEEK "Stock.dat", 12'
+                      : 'For example  ' + word + ' "Stock.dat", ThisRecord');
+    const arg = this.expr();
+    this.endLine();
+    return { kind:kind, file:file, arg:arg, line:ln };
+  },
+
   sOpen(){
     const ln = this.line; this.next();
     const f = this.expr();
@@ -781,6 +822,12 @@ Interp.prototype.defaultFor = function(t, line){
   if (this.types[t]) return this.makeRecord(t, line);
   return 0;
 };
+function cloneRec(v){
+  if (!v || !v.__rec) return v;
+  const c = { __rec:true, type:v.type, f:Object.create(null) };
+  for (const k in v.f) c.f[k] = cloneRec(v.f[k]);
+  return c;
+}
 Interp.prototype.makeRecord = function(tname, line){
   const def = this.types[tname];
   const r = { __rec:true, type:tname, f:Object.create(null) };
@@ -1521,13 +1568,57 @@ Interp.prototype.exec = function(n, scope){
         this.aboveIgcse(n.line, "Opening a file FOR " + n.mode);
       const name = String(this.ev(n.file, scope));
       let f = this.files[name];
-      if (!f){ f = this.files[name] = { lines:[], mode:null, pos:0 }; }
+      if (!f){ f = this.files[name] = { lines:[], mode:null, pos:0, records:Object.create(null) }; }
       if (f.mode) this.warn(n.line, '"' + name + '" was already open. Close it before opening it again.');
+      if (!f.records) f.records = Object.create(null);
       if (n.mode === "WRITE") f.lines = [];
       f.mode = n.mode;
-      f.pos = (n.mode === "READ") ? 0 : f.lines.length;
+      f.pos = (n.mode === "RANDOM") ? 1 : ((n.mode === "READ") ? 0 : f.lines.length);
       return;
     }
+    case "Seek": {
+      const name = String(this.ev(n.file, scope));
+      const f = this.files[name];
+      if (!f || f.mode !== "RANDOM")
+        this.err(n.line, '"' + name + '" is not open for random access.',
+          'Open it first with  OPENFILE "' + name + '" FOR RANDOM');
+      const addr = this.ev(n.arg, scope);
+      if (typeof addr !== "number" || addr !== Math.floor(addr) || addr < 1)
+        this.err(n.line, "A record address must be a whole number of 1 or more.");
+      f.pos = addr;
+      return;
+    }
+
+    case "GetRecord": {
+      const name = String(this.ev(n.file, scope));
+      const f = this.files[name];
+      if (!f || f.mode !== "RANDOM")
+        this.err(n.line, '"' + name + '" is not open for random access.',
+          'Open it first with  OPENFILE "' + name + '" FOR RANDOM');
+      const ref = this.lval(n.arg, scope);
+      const stored = f.records[f.pos];
+      if (stored === undefined){
+        this.warn(n.line, 'There is no record at address ' + f.pos + ' of "' + name +
+          '" yet, so an empty one was read.');
+      } else {
+        ref.set(cloneRec(stored));
+      }
+      f.pos = f.pos + 1;
+      return;
+    }
+
+    case "PutRecord": {
+      const name = String(this.ev(n.file, scope));
+      const f = this.files[name];
+      if (!f || f.mode !== "RANDOM")
+        this.err(n.line, '"' + name + '" is not open for random access.',
+          'Open it first with  OPENFILE "' + name + '" FOR RANDOM');
+      const v = this.ev(n.arg, scope);
+      f.records[f.pos] = cloneRec(v);
+      f.pos = f.pos + 1;
+      return;
+    }
+
     case "ReadFile": {
       const name = String(this.ev(n.file, scope));
       const f = this.files[name];

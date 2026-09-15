@@ -869,7 +869,10 @@ table.ref td.d{ font-family:var(--prose); color:var(--ink-2); }
 
 <script src="interpreter.js"></script>
 <script src="lessons.js"></script>
+<script src="lessons-igcse.js"></script>
 <script src="bank.js"></script>
+<script src="bank-igcse.js"></script>
+<script src="bank-extra.js"></script>
 <script src="library.js"></script>
 
 <script>
@@ -877,7 +880,7 @@ table.ref td.d{ font-family:var(--prose); color:var(--ink-2); }
 
 /* Data arrives from the files above. */
 const LESSONS    = (window.LESSONS_ALEVEL   || []).concat(window.LESSONS_IGCSE   || []);
-const QUESTIONS  = (window.QUESTIONS_ALEVEL || []).concat(window.QUESTIONS_IGCSE || []);
+const QUESTIONS  = (window.QUESTIONS_ALEVEL || []).concat(window.QUESTIONS_IGCSE || [], window.QUESTIONS_EXTRA || []);
 const DIFFICULTY = Object.assign({}, window.DIFFICULTY_ALEVEL || {}, window.DIFFICULTY_IGCSE || {});
 const RUNSPECS   = Object.assign({}, window.RUNSPECS_ALEVEL   || {}, window.RUNSPECS_IGCSE   || {});
 
@@ -898,7 +901,7 @@ function activeLessons(){
   return LESSONS.filter(l => (l.levels || ["as","a2"]).some(x => seen.indexOf(x) !== -1));
 }
 function inLevel(q){ return levelSees(STATE.level).indexOf(q.level || "as") !== -1; }
-QUESTIONS.forEach(q => { q.diff = DIFFICULTY[q.id] || 3; });
+QUESTIONS.forEach(q => { q.diff = DIFFICULTY[q.id] || q.diff || 3; });
 Object.keys(RUNSPECS).forEach(function(id){
   const q = QUESTIONS.filter(x => x.id === id)[0];
   if (q) q.run = RUNSPECS[id];
