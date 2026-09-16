@@ -1,0 +1,31 @@
+# ============================================================================
+# Render blueprint for Assignment Arrow
+#
+# The app is a static site: no server, no database, no API key, nothing to
+# pay for. Every student's progress lives in their own browser, so nobody's
+# scores can interfere with anybody else's.
+#
+# To deploy:  Render dashboard -> New -> Blueprint -> pick this repository.
+# Or by hand: New -> Static Site -> Publish directory  .  -> Create.
+# ============================================================================
+services:
+  - type: web
+    runtime: static
+    name: assignment-arrow
+    staticPublishPath: .
+    pullRequestPreviewsEnabled: false
+    buildFilter:
+      ignoredPaths:
+        - tools/**
+        - server/**
+        - README.md
+    headers:
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+      - path: /*
+        name: Referrer-Policy
+        value: no-referrer
+      - path: /*.js
+        name: Cache-Control
+        value: public, max-age=300, must-revalidate

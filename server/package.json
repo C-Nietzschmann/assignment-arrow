@@ -1,0 +1,11 @@
+{
+  "name": "assignment-arrow-server",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Optional question generator for Assignment Arrow. The app works fully without it.",
+  "main": "index.js",
+  "scripts": { "start": "node index.js" },
+  "dependencies": { "@anthropic-ai/sdk": "^0.68.0" },
+  "engines": { "node": ">=20" }
+}

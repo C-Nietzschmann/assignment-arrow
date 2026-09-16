@@ -1,25 +1,28 @@
 # Assignment Arrow
 
-A practice app for the pseudocode used in **Cambridge International AS & A Level Computer Science (9618)**.
+A practice app for Cambridge pseudocode, covering **IGCSE 0478**, **AS 9618** and **A Level 9618**.
 
-Single HTML file, no build step, no dependencies. Open `index.html` in a browser and it works.
+Static HTML and JavaScript. No build step, no dependencies, no account, no server. Open `index.html`
+and it works — offline, from a USB stick, anywhere.
+
+**Live:** deploy in two clicks with the Render blueprint below.
+
+---
 
 ## What it does
 
-**Course** — thirteen lessons in order, from `←` through to classes and inheritance. Each lesson teaches
-the syntax, shows it working, names the mistake that loses marks, and ends with a check question.
+**Pick your course first.** IGCSE, AS or A Level. That choice drives the lessons, the questions, the
+exam papers, the library, and the notation the checker expects — because the two syllabuses genuinely
+differ (`SUBSTRING` vs `MID`, `UCASE` vs `TO_UPPER`, and more). Switch any time from the sidebar;
+progress is kept per course.
 
-**Practice** — a bank of original exam-style questions with a three-step tip ladder (nudge → structure →
-near-answer), a model answer with commentary, and a mark scheme you tick yourself. Question types:
-write-pseudocode, trace tables that mark cell by cell, and quick syntax drills.
+**Your pseudocode actually runs.** A complete interpreter — lexer, parser, evaluator, written from
+scratch — covers both dialects: all data types with real type checking, 1D and 2D arrays, `IF` and
+`CASE`, all three loops, procedures and functions with `BYVAL`/`BYREF`, records, enumerated types,
+classes with inheritance and enforced encapsulation, recursion, text files and random-access files.
 
-**Question generator** — unlimited new questions in exam style, with a difficulty dial from Foundation to
-Hardest, generated on demand for any topic and either paper. Requires the claude.ai hosted version.
-
-**Your pseudocode actually runs.** The app contains a complete interpreter for the 9618 notation —
-lexer, parser and evaluator, written from scratch, no dependencies. Loops loop, arrays fill, files are
-read and written, records and classes work, recursion recurses. Press **Run it** and you get the output,
-or a line-accurate error written the way a teacher would say it:
+The errors are the teaching surface. Each one is line-accurate and phrased the way a teacher would
+say it, aimed at exactly what loses marks:
 
 | It catches | It says |
 |---|---|
@@ -28,54 +31,74 @@ or a line-accurate error written the way a teacher would say it:
 | reading an unset total | `'Total' has been declared but nothing has been put in it yet.` |
 | `FOR i <- 1 TO 6` on `ARRAY[1:5]` | `Index 6 is outside 'Scores', which runs from 1 to 5.` |
 | dividing by a zero count | `You cannot divide by zero. A count that is still 0 is the usual cause.` |
-| a loop that never ends | `Something inside the loop must change the value the condition tests.` |
-| `OPENFILE ... FOR WRITE` to add a record | the file is genuinely emptied, so you see the data loss |
+| a loop that cannot end | `Something inside the loop must change the value the condition tests.` |
+| `MID` while sitting IGCSE | `MID is AS/A Level notation. For IGCSE 0478 write SUBSTRING instead.` |
 
-Questions that say data already exists — "an array that already holds the monthly rainfall" — really do
-have that data seeded when you run them, so the output means something.
+Mixing dialects is never an error, only advice — you are never blocked mid-question.
+
+**98 original questions.** Write-pseudocode, trace tables marked cell by cell, spot-the-error, and
+quick syntax drills. Every one has a three-step tip ladder (a nudge, then the technique, then close
+to the answer), a commented model answer, and a mark scheme you tick yourself.
 
 **Practice and exam behave differently on purpose.** In Practice you run your answer as often as you
-like, read the error, fix it, run again. In Exam mode the Run button is gone; when the timer stops every
-executable answer is run **once**, and code that does not run scores **zero** with its mark scheme
-locked. The error is shown afterwards so you know what to drill.
+like — read the error, fix it, run again. In Exam mode the Run button is gone; when the timer stops
+every executable answer is run **once**, and code that does not run scores **zero** with its mark
+scheme locked.
 
-**Exam mode** — a timed paper assembled from the bank, tips disabled, mark schemes sealed until the timer
-stops. Self-marked at the end with a per-topic breakdown.
+**A runnable library.** 78 entries covering every keyword and built-in function, each with a
+signature, level badges, a worked example you can run and edit, and the mistake people actually make.
+Plus the IGCSE ↔ A Level dialect map and 11 patterns worth knowing by heart.
 
-**Reference** — the whole 9618 notation on one filterable page.
+**23 lessons.** Ten for IGCSE, thirteen for AS and A Level. Each teaches the syntax, shows it working,
+names the mistake that loses marks, and ends with a check question.
 
-**Progress** — marks banked per topic, weakest first, saved in the browser.
+---
 
-## Editor conveniences
+## Deploying to Render
 
-- Typing `<-` becomes `←` automatically
-- <kbd>Tab</kbd> indents four spaces, <kbd>Shift</kbd>+<kbd>Tab</kbd> outdents
-- <kbd>Enter</kbd> after `THEN`, `DO` or `REPEAT` auto-indents the next line
+**Blueprint:** Render dashboard → New → Blueprint → choose this repository. `render.yaml` does the rest.
 
-## Running it
+**By hand:** New → Static Site → connect the repo → Publish directory `.` → Create.
 
-Open `index.html` directly, or serve the folder:
+Free tier, no cold starts, no environment variables. Each student's progress is stored in their own
+browser, so nobody's scores interfere with anybody else's, and no personal data ever leaves the
+machine.
+
+### The optional generator
+
+`server/` can generate unlimited fresh questions, but it is **off and not needed**. Turn it on only if
+you want it: deploy `server/` as a Web Service, `npm install`, and set the values in `.env.example`
+(including a class access code, a per-browser rate limit and a daily cap — the endpoint is public and
+the credit is yours). Render has no "import .env" button; paste those lines into the service's
+Environment tab. Never commit a filled-in `.env` — this repository is public.
+
+---
+
+## Verifying
 
 ```
-python3 -m http.server 8000
+node tools/verify.mjs
 ```
 
-The course, question bank, exam mode, trace marking and progress all work entirely offline. Question
-generation and AI marking light up only in the claude.ai hosted version; the page detects this and hides
-those controls when they are unavailable.
+Runs every model answer and every library example through the real interpreter and checks the output
+matches what is documented; that mark schemes sum to the stated marks; that every question has three
+tips, a level and a difficulty; and that trace rows match their column count. 208 checks. It has
+already caught four interpreter bugs that reading the code did not.
+
+## Editor
+
+Typing `<-` becomes `←`. <kbd>Tab</kbd> indents four spaces, <kbd>Shift</kbd>+<kbd>Tab</kbd> outdents.
+<kbd>Enter</kbd> after `THEN`, `DO` or `REPEAT` auto-indents.
 
 ## About the questions
 
-**Every question in this repository is original.** No Cambridge past-paper material is reproduced, quoted
-or included, and none is fetched at runtime. The generator is instructed to invent fresh scenarios rather
-than recall real questions. Past papers are available through Cambridge's own channels and through your
-school or teacher.
+**Every question here is original.** No Cambridge past-paper material is reproduced, quoted or
+fetched at runtime. Past papers are available through your school and Cambridge's own channels.
 
 ## Not affiliated
 
-Assignment Arrow is an independent study tool. It is not affiliated with, endorsed by, or connected to
-Cambridge Assessment International Education. "Cambridge International" and syllabus code 9618 are
-referenced descriptively to identify the course this tool is designed for.
+An independent study tool, not affiliated with, endorsed by or connected to Cambridge Assessment
+International Education. Syllabus codes are used descriptively to identify the courses it targets.
 
 ## Licence
 
