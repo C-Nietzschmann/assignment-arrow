@@ -346,14 +346,34 @@ body{
   border:1px solid var(--rule); background:var(--surface); color:var(--ink-2);
 }
 .ins:hover{ color:var(--pen); border-color:var(--pen); }
-textarea.editor{
-  display:block; width:100%; min-height:190px; resize:vertical;
-  border:0; padding:12px 14px;
-  background:var(--code-bg); color:var(--ink);
+/* The editor is a transparent textarea sitting exactly on top of a
+   highlighted copy of the same text. Every metric below must match in
+   both rules or the caret drifts away from the letters. */
+.editor-stack{ position:relative; background:var(--code-bg); }
+.editor-stack.focused{ box-shadow:inset 0 0 0 2px var(--pen); }
+
+pre.editor-hl, textarea.editor{
+  margin:0; border:0;
+  padding:12px 14px;
   font-family:var(--mono); font-size:.86rem; line-height:1.72;
-  tab-size:4; white-space:pre; overflow-wrap:normal; overflow-x:auto;
+  tab-size:4; white-space:pre; overflow-wrap:normal;
+  letter-spacing:normal;
 }
-textarea.editor:focus{ outline:none; box-shadow:inset 0 0 0 2px var(--pen); }
+pre.editor-hl{
+  position:absolute; inset:0; overflow:hidden;
+  pointer-events:none; color:var(--ink);
+}
+pre.editor-hl code{ font:inherit; }
+textarea.editor{
+  position:relative; display:block; width:100%; min-height:190px; resize:vertical;
+  background:transparent;
+  color:transparent;                 /* the overlay supplies the colour */
+  caret-color:var(--ink);
+  overflow-x:auto;
+}
+textarea.editor::selection{ background:var(--pen-soft); }
+textarea.editor:focus{ outline:none; }
+.editor-bar .hint.match{ color:var(--pen); font-family:var(--mono); font-size:.76rem; }
 
 /* ---------- tips ---------- */
 .tip{
@@ -1073,22 +1093,169 @@ try{
 }catch(e){}
 
 /* ---------------- pseudocode editor behaviour ---------------- */
+/* ============================================================================
+   THE EDITOR
+   A transparent textarea over a highlighted copy of the same text, plus
+   Tab completion of the words you type most.
+   ========================================================================== */
+
+/* Typing the trigger and pressing Tab drops in the whole skeleton, indented
+   to match the line you are on. "|" marks where the caret lands. */
+const SNIPPETS_TAB = {
+  IF:        "IF | THEN\n    \nENDIF",
+  IFELSE:    "IF | THEN\n    \nELSE\n    \nENDIF",
+  FOR:       "FOR i \u2190 1 TO |\n    \nNEXT i",
+  WHILE:     "WHILE | DO\n    \nENDWHILE",
+  REPEAT:    "REPEAT\n    |\nUNTIL ",
+  CASE:      "CASE OF |\n    1        : \n    OTHERWISE: \nENDCASE",
+  PROCEDURE: "PROCEDURE |()\n    \nENDPROCEDURE",
+  FUNCTION:  "FUNCTION |() RETURNS INTEGER\n    RETURN \nENDFUNCTION",
+  DECLARE:   "DECLARE | : INTEGER",
+  CONSTANT:  "CONSTANT | = ",
+  OPENFILE:  "OPENFILE \"|\" FOR READ",
+  TYPE:      "TYPE |\n    DECLARE Field : INTEGER\nENDTYPE",
+  CLASS:     "CLASS |\n    PRIVATE Attr : INTEGER\n\n    PUBLIC PROCEDURE NEW()\n    ENDPROCEDURE\nENDCLASS"
+};
+
+const BUILTIN_IGCSE  = ["LENGTH","SUBSTRING","UCASE","LCASE","ROUND","RANDOM","DIV","MOD","EOF"];
+const BUILTIN_ALEVEL = ["LENGTH","MID","LEFT","RIGHT","TO_UPPER","TO_LOWER","NUM_TO_STRING",
+                        "STRING_TO_NUM","IS_NUM","ASC","CHR","INT","RAND","DIV","MOD","EOF"];
+
+/* Keywords, the library for the course being sat, and every identifier the
+   student has already typed in this answer - so their own variable names
+   complete too, which is where most of the typing actually goes. */
+function completionPool(ta){
+  const words = [];
+  const add = w => { if (words.indexOf(w) === -1) words.push(w); };
+  (STATE.level === "igcse" ? BUILTIN_IGCSE : BUILTIN_ALEVEL).forEach(add);
+  KEYWORDS.forEach(add);
+  TYPENAMES.forEach(add);
+  const own = ta.value.match(/[A-Za-z_][A-Za-z0-9_]*/g) || [];
+  own.forEach(w => { if (w.length > 2 && !KEYWORDS.has(w.toUpperCase())) add(w); });
+  return words;
+}
+
+function syncHighlight(ta){
+  const pre = document.getElementById("hl_" + ta.id.slice(3));
+  if (!pre) return;
+  pre.firstChild.innerHTML = hl(ta.value + "\n");   // trailing NL keeps the last line visible
+  pre.scrollTop = ta.scrollTop;
+  pre.scrollLeft = ta.scrollLeft;
+}
+
+/* Arrow conversion + repaint. Programmatic edits must call this too, because
+   setting .value does not fire an input event. */
+function refreshEditor(ta){
+  if (ta.value.indexOf("<-") !== -1){
+    const p = ta.selectionStart;
+    const hits = (ta.value.slice(0, p).match(/<-/g) || []).length;
+    ta.value = ta.value.replace(/<-/g, "\u2190");
+    ta.selectionStart = ta.selectionEnd = p - hits;
+  }
+  syncHighlight(ta);
+}
+
+function editorHint(ta, text, isMatch){
+  const bar = ta.closest(".editor-wrap");
+  const h = bar && bar.querySelector(".hint");
+  if (!h) return;
+  if (text === null){
+    h.textContent = h.dataset.rest || "Tab completes \u00b7 type <- for the arrow";
+    h.classList.remove("match");
+  } else {
+    if (!h.dataset.rest) h.dataset.rest = h.textContent;
+    h.textContent = text;
+    h.classList.toggle("match", !!isMatch);
+  }
+}
+
+function expandSnippet(ta, prefix, body){
+  const s = ta.selectionStart;
+  const lineStart = ta.value.lastIndexOf("\n", s - 1) + 1;
+  const indent = (ta.value.slice(lineStart, s).match(/^\s*/) || [""])[0];
+  const text = body.split("\n").join("\n" + indent);
+  const caret = text.indexOf("|");
+  const out = text.replace("|", "");
+  ta.value = ta.value.slice(0, s - prefix.length) + out + ta.value.slice(s);
+  const at = s - prefix.length + (caret === -1 ? out.length : caret);
+  ta.selectionStart = ta.selectionEnd = at;
+  refreshEditor(ta);
+}
+
 function wireEditor(ta){
+  const stack = ta.closest(".editor-stack");
+  ta.addEventListener("focus", () => stack && stack.classList.add("focused"));
+  ta.addEventListener("blur",  () => { if (stack) stack.classList.remove("focused"); editorHint(ta, null); });
+  ta.addEventListener("input",  () => { refreshEditor(ta); ta._comp = null; });
+  ta.addEventListener("scroll", () => syncHighlight(ta));
+
   ta.addEventListener("keydown", function(e){
+    if (e.key !== "Tab") ta._comp = null;
+
     if (e.key === "Tab"){
       e.preventDefault();
       const s = ta.selectionStart, en = ta.selectionEnd, v = ta.value;
-      if (e.shiftKey){
+
+      if (e.shiftKey){                                   // outdent
         const lineStart = v.lastIndexOf("\n", s - 1) + 1;
         if (v.slice(lineStart, lineStart + 4) === "    "){
           ta.value = v.slice(0, lineStart) + v.slice(lineStart + 4);
           ta.selectionStart = ta.selectionEnd = Math.max(lineStart, s - 4);
+          refreshEditor(ta);
         }
-      } else {
-        ta.value = v.slice(0, s) + "    " + v.slice(en);
-        ta.selectionStart = ta.selectionEnd = s + 4;
+        return;
       }
+
+      /* still cycling through the matches from the last Tab */
+      if (ta._comp && ta._comp.at === s){
+        const c = ta._comp;
+        c.idx = (c.idx + 1) % c.matches.length;
+        const word = c.matches[c.idx];
+        ta.value = v.slice(0, c.start) + word + v.slice(s);
+        ta.selectionStart = ta.selectionEnd = c.start + word.length;
+        ta._comp = { start:c.start, at:c.start + word.length, matches:c.matches, idx:c.idx };
+        editorHint(ta, (c.idx + 1) + "/" + c.matches.length + "  " + c.matches.join("  "), true);
+        refreshEditor(ta);
+        return;
+      }
+
+      const before = v.slice(0, s);
+      const m = (s === en) && before.match(/[A-Za-z_][A-Za-z0-9_]*$/);
+
+      if (m){
+        const prefix = m[0];
+        const snip = SNIPPETS_TAB[prefix.toUpperCase()];
+        if (snip && before.slice(0, s - prefix.length).match(/(^|\n)\s*$/)){
+          expandSnippet(ta, prefix, snip);               // whole-line trigger
+          editorHint(ta, null);
+          return;
+        }
+        const up = prefix.toUpperCase();
+        const matches = completionPool(ta)
+          .filter(w => w.toUpperCase().startsWith(up) && w.toUpperCase() !== up)
+          .sort((a,b) => a.length - b.length)
+          .slice(0, 8);
+        if (matches.length){
+          const word = matches[0];
+          ta.value = v.slice(0, s - prefix.length) + word + v.slice(s);
+          const at = s - prefix.length + word.length;
+          ta.selectionStart = ta.selectionEnd = at;
+          ta._comp = { start:s - prefix.length, at:at, matches:matches, idx:0 };
+          editorHint(ta, matches.length > 1
+            ? "1/" + matches.length + "  " + matches.join("  ") + "   (Tab for the next)"
+            : word, true);
+          refreshEditor(ta);
+          return;
+        }
+        editorHint(ta, "no completion for " + prefix, false);
+      }
+
+      ta.value = v.slice(0, s) + "    " + v.slice(en);   // plain indent
+      ta.selectionStart = ta.selectionEnd = s + 4;
+      refreshEditor(ta);
+      return;
     }
+
     if (e.key === "Enter"){
       const s = ta.selectionStart, v = ta.value;
       const lineStart = v.lastIndexOf("\n", s - 1) + 1;
@@ -1099,22 +1266,18 @@ function wireEditor(ta){
       const add = "\n" + indent + (opens ? "    " : "");
       ta.value = v.slice(0, s) + add + v.slice(ta.selectionEnd);
       ta.selectionStart = ta.selectionEnd = s + add.length;
+      refreshEditor(ta);
     }
   });
-  ta.addEventListener("input", function(){
-    if (ta.value.indexOf("<-") !== -1){
-      const p = ta.selectionStart;
-      const before = ta.value.slice(0, p);
-      const hits = (before.match(/<-/g) || []).length;
-      ta.value = ta.value.replace(/<-/g, "←");
-      ta.selectionStart = ta.selectionEnd = p - hits;
-    }
-  });
+
+  syncHighlight(ta);
 }
+
 function insertAt(ta, text){
   const s = ta.selectionStart, e = ta.selectionEnd;
   ta.value = ta.value.slice(0,s) + text + ta.value.slice(e);
   ta.selectionStart = ta.selectionEnd = s + text.length;
+  refreshEditor(ta);
   ta.focus();
 }
 
@@ -1335,8 +1498,9 @@ function renderQuestionCard(q, mode){
     h += '<button class="ins" data-ins="WHILE  DO\n    \nENDWHILE" data-for="' + idp + '">WHILE</button>';
     h += '<button class="ins" data-ins="REPEAT\n    \nUNTIL " data-for="' + idp + '">REPEAT</button>';
     h += '<button class="ins" data-paste="' + idp + '" title="Paste what you sent from the library">Paste</button>';
-    h += '<span class="hint">Tab indents &middot; type &lt;- for the arrow</span>';
-    h += "</div><textarea class=\"editor\" id=\"ta_" + idp + "\" spellcheck=\"false\" placeholder=\"Write your pseudocode here. Declarations first, then the structure, then the detail.\"></textarea></div>";
+    h += '<span class="hint">Tab completes &middot; type &lt;- for the arrow</span>';
+    h += '</div><div class="editor-stack"><pre class="editor-hl" aria-hidden="true" id="hl_' + idp + '"><code></code></pre>';
+    h += '<textarea class="editor" id="ta_' + idp + '" spellcheck="false" autocapitalize="off" autocorrect="off" placeholder="Write your pseudocode here. Declarations first, then the structure, then the detail."></textarea></div></div>';
 
     if (mode === "practice"){
       h += '<div class="runbar">';
