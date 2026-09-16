@@ -521,6 +521,35 @@ table.ref td.d{ font-family:var(--prose); color:var(--ink-2); }
 .foot{ max-width:940px; margin:40px auto 0; padding:22px 26px 0; border-top:1px solid var(--rule); color:var(--ink-3); font-size:.82rem; font-family:var(--display); }
 .foot a{ color:var(--ink-2); }
 
+/* ---------- automatic marking ---------- */
+.mark-result{ border:1px solid var(--rule); border-radius:6px; overflow:hidden; margin-top:12px; }
+.mark-score{ display:flex; align-items:baseline; gap:10px; padding:14px 16px; border-bottom:1px solid var(--rule); }
+.mark-score .ms-big{ font-family:var(--mono); font-size:2.1rem; font-weight:600; line-height:1; font-variant-numeric:tabular-nums; }
+.mark-score .ms-of{ font-family:var(--mono); font-size:1rem; color:var(--ink-3); }
+.mark-score .label{ margin-left:auto; }
+.mark-result.full .mark-score{ background:var(--ok-soft); }
+.mark-result.full .ms-big{ color:var(--ok); }
+.mark-result.part .mark-score{ background:var(--warn-soft); }
+.mark-result.part .ms-big{ color:var(--warn); }
+.mark-result.none .mark-score{ background:var(--pen-soft); }
+.mark-result.none .ms-big{ color:var(--pen); }
+.mark-band{ display:flex; align-items:baseline; gap:10px; padding:10px 16px 6px; background:var(--surface-2); }
+.mark-band .k{ font-family:var(--display); font-size:.72rem; font-weight:700; letter-spacing:.09em; text-transform:uppercase; color:var(--ink-2); }
+.mark-band b{ font-family:var(--mono); font-size:.9rem; font-variant-numeric:tabular-nums; }
+.mark-band .d{ margin-left:auto; font-family:var(--prose); font-size:.85rem; color:var(--ink-3); }
+.case{ display:flex; gap:9px; align-items:baseline; padding:5px 16px; font-family:var(--prose); font-size:.93rem; background:var(--surface); }
+.case .cm{ font-weight:700; flex:0 0 auto; font-family:var(--mono); }
+.case.ok .cm{ color:var(--ok); }
+.case.bad .cm{ color:var(--pen); }
+.case.bad{ color:var(--ink); }
+.case-detail{ padding:12px 16px; background:var(--surface); border-top:1px dashed var(--rule-soft); }
+.case-detail b{ font-family:var(--display); font-size:.74rem; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-2); }
+.case-detail .wg{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:8px; }
+.case-detail .wg .k{ font-family:var(--display); font-size:.68rem; font-weight:700; letter-spacing:.09em; text-transform:uppercase; color:var(--ink-3); display:block; margin-bottom:3px; }
+.case-detail .wg pre{ margin:0; padding:8px 10px; background:var(--code-bg); border:1px solid var(--rule-soft); border-radius:4px; font-family:var(--mono); font-size:.8rem; white-space:pre-wrap; overflow-x:auto; }
+.case-detail .note-small{ font-family:var(--prose); font-size:.86rem; color:var(--ink-3); margin:10px 0 0; }
+@media (max-width:640px){ .case-detail .wg{ grid-template-columns:1fr; } }
+
 /* ---------- run console ---------- */
 .runbar{ display:flex; align-items:center; gap:9px; flex-wrap:wrap; margin-top:10px; }
 .runbar .runinfo{ font-size:.78rem; color:var(--ink-3); font-family:var(--display); }
@@ -894,6 +923,7 @@ table.ref td.d{ font-family:var(--prose); color:var(--ink-2); }
 <script src="bank-igcse.js"></script>
 <script src="bank-extra.js"></script>
 <script src="library.js"></script>
+<script src="tests.js"></script>
 
 <script>
 "use strict";
@@ -1516,6 +1546,7 @@ function renderQuestionCard(q, mode){
       }
       h += '<div id="con_' + idp + '"></div>';
     } else {
+      h += '<div id="mk_' + idp + '"></div>';
       h += '<div class="runbar"><span class="runinfo">Running code is switched off in exam mode. ' +
            (q.run ? 'Your answer will be run once when the paper is marked - if it does not run, the question scores zero.'
                   : 'This question is marked by the scheme only.') + "</span></div>";
@@ -1556,20 +1587,37 @@ function renderQuestionCard(q, mode){
     h += '<div id="tips_' + idp + '" style="margin-top:11px"></div></div>';
   }
 
+  /* ---- marking ---- */
+  const auto = canAutoMark(q);
+  if (auto && mode === "practice"){
+    h += '<div class="btn-row" style="margin-top:14px">';
+    h += '<button class="btn btn-primary btn-sm" data-mark="' + idp + '">Mark my answer</button>';
+    h += '<span class="runinfo">Run against several hidden cases. The score is worked out, not claimed.</span></div>';
+    h += '<div id="mk_' + idp + '"></div>';
+  }
+
   /* ---- model answer + mark scheme ---- */
   if (q.kind !== "mcq"){
     h += '<details class="disclose"><summary>Model answer and mark scheme</summary><div class="disclose-body">';
     if (q.model) h += codeBlock(q.model);
     if (q.modelNote) h += '<div class="prose">' + (q.gen ? safeHtml(q.modelNote) : q.modelNote) + "</div>";
-    h += '<div class="label" style="margin:18px 0 6px">Mark scheme &mdash; tick what your answer actually did</div>';
-    q.ms.forEach(function(p, i){
-      h += '<div class="ms-item"><input type="checkbox" id="ms_' + idp + "_" + i + '" data-ms="' + idp + '" data-m="' + p.m + '">';
-      h += '<label for="ms_' + idp + "_" + i + '">' + esc(p.t) + '</label><span class="m">[' + p.m + "]</span></div>";
-    });
-    h += '<div class="btn-row" style="margin-top:14px">';
-    h += '<button class="btn btn-primary btn-sm" data-save="' + idp + '" data-qid="' + esc(q.id) + '" data-max="' + q.marks + '">Save my score</button>';
-    h += '<button class="btn btn-sm" data-aimark="' + idp + '" data-qid="' + esc(q.id) + '" hidden>Ask Claude to mark it</button>';
-    h += '<span class="label" id="sv_' + idp + '"></span></div>';
+    if (auto){
+      h += '<div class="label" style="margin:18px 0 6px">What the marks are for</div>';
+      q.ms.forEach(function(p){
+        h += '<div class="ms-item" style="padding-left:2px"><span class="m" style="color:var(--ink-3)">&bull;</span>';
+        h += '<label style="cursor:default">' + esc(p.t) + '</label><span class="m">[' + p.m + "]</span></div>";
+      });
+    }
+    if (!auto){
+      h += '<div class="label" style="margin:14px 0 6px">This one cannot be marked automatically &mdash; tick what you actually did</div>';
+      q.ms.forEach(function(p, i){
+        h += '<div class="ms-item"><input type="checkbox" id="ms_' + idp + "_" + i + '" data-ms="' + idp + '" data-m="' + p.m + '">';
+        h += '<label for="ms_' + idp + "_" + i + '">' + esc(p.t) + '</label><span class="m">[' + p.m + "]</span></div>";
+      });
+      h += '<div class="btn-row" style="margin-top:12px">';
+      h += '<button class="btn btn-primary btn-sm" data-save="' + idp + '" data-qid="' + esc(q.id) + '" data-max="' + q.marks + '">Save that score</button>';
+      h += '<span class="label" id="sv_' + idp + '"></span></div>';
+    }
     h += '<div id="fb_' + idp + '"></div>';
     h += "</div></details>";
   }
@@ -1673,6 +1721,19 @@ function wireQuestionCard(q, root){
       if (!left) tipBtn.disabled = true;
     });
   }
+
+  const markBtn = root.querySelector('[data-mark="' + idp + '"]');
+  if (markBtn) markBtn.addEventListener("click", function(){
+    const answer = ta ? ta.value.trim() : "";
+    const box = root.querySelector("#mk_" + idp);
+    if (!answer){
+      box.innerHTML = '<div class="feedback">Write an answer above first.</div>';
+      return;
+    }
+    const res = autoMark(q, answer);
+    box.innerHTML = markReportHtml(res);
+    recordResult(q.id, res.awarded, res.max);
+  });
 
   const saveBtn = root.querySelector('[data-save="' + idp + '"]');
   if (saveBtn){
@@ -1807,6 +1868,100 @@ async function aiMark(q, root, idp, btn){
     box.innerHTML = '<div class="feedback">' + msg + "</div>";
   }
   btn.disabled = false;
+}
+
+/* ============================================================================
+   AUTOMATIC MARKING
+   The score is not self-declared. The answer is executed against several
+   hidden cases whose expected output came from running the verified model
+   answer, and it is checked for the constructs the question requires.
+   Printing the right answer as a literal fails the other cases.
+   ========================================================================== */
+function canAutoMark(q){
+  return q.kind === "code" && window.TESTS && window.TESTS[q.id];
+}
+function markSplit(q){
+  const behaviour = Math.max(1, Math.round(q.marks * 0.6));
+  return { behaviour: behaviour, structure: q.marks - behaviour };
+}
+function stripComments(src){ return src.replace(/\/\/[^\n]*/g, "").toUpperCase(); }
+
+function autoMark(q, answer){
+  const spec = window.TESTS[q.id];
+  const base = q.run || {};
+  const split = markSplit(q);
+  const cases = [];
+
+  for (const t of spec.tests){
+    const setup   = (t.setup   !== undefined && t.setup   !== null) ? t.setup   : base.setup;
+    const harness = (t.harness !== undefined && t.harness !== null) ? t.harness : base.harness;
+    const src = (setup ? setup + "\n" : "") + answer + (harness ? "\n" + harness : "");
+    const lines = String(t.inputs || "").replace(/\r/g, "").split("\n");
+    while (lines.length && lines[lines.length - 1] === "") lines.pop();
+    const r = window.PseudoRun(src, {
+      inputs: lines, files: t.files !== undefined ? t.files : base.files,
+      level: STATE.level, offset: setup ? setup.split("\n").length - 1 : 0
+    });
+    const got = r.ok ? r.output.join("\n") : null;
+    cases.push({ ok: r.ok && got === t.out, ran: r.ok, error: r.error,
+                 inputs: t.inputs, want: t.out, got: got });
+  }
+
+  const passed = cases.filter(c => c.ok).length;
+  const bMarks = cases.length ? Math.round(split.behaviour * passed / cases.length) : 0;
+
+  const src = stripComments(answer);
+  const reqs = (spec.require || []).map(rq => ({ t: rq.t, ok: new RegExp(rq.re).test(src) }));
+  const met = reqs.filter(r => r.ok).length;
+  const sMarks = reqs.length ? Math.round(split.structure * met / reqs.length) : split.structure;
+
+  // nothing runs at all, nothing is earned
+  const anyRan = cases.some(c => c.ran);
+  const awarded = anyRan ? Math.min(q.marks, bMarks + sMarks) : 0;
+
+  return { awarded: awarded, max: q.marks, cases: cases, passed: passed,
+           reqs: reqs, split: split, bMarks: anyRan ? bMarks : 0,
+           sMarks: anyRan ? sMarks : 0, anyRan: anyRan };
+}
+
+function markReportHtml(res){
+  let h = '<div class="mark-result ' + (res.awarded === res.max ? "full" : res.awarded ? "part" : "none") + '">';
+  h += '<div class="mark-score"><span class="ms-big">' + res.awarded + "</span><span class=\"ms-of\">/ " + res.max + "</span>";
+  h += '<span class="label">' + (res.awarded === res.max ? "full marks"
+        : res.anyRan ? "partial credit" : "it did not run, so nothing is earned") + "</span></div>";
+
+  h += '<div class="mark-band"><span class="k">Does it work</span><b>' + res.bMarks + " / " + res.split.behaviour +
+       '</b><span class="d">' + res.passed + " of " + res.cases.length + " hidden test cases passed</span></div>";
+
+  res.cases.forEach(function(c, i){
+    h += '<div class="case ' + (c.ok ? "ok" : "bad") + '"><span class="cm">' + (c.ok ? "\u2713" : "\u2717") +
+         "</span><span>Case " + (i + 1) + (c.inputs ? " \u00b7 input " + esc(String(c.inputs).split("\n").join(", ")) : "") + "</span></div>";
+  });
+
+  const firstBad = res.cases.find(c => !c.ok);
+  if (firstBad){
+    h += '<div class="case-detail">';
+    if (!firstBad.ran){
+      h += "<b>Case " + (res.cases.indexOf(firstBad) + 1) + " stopped with an error</b>";
+      h += '<div class="run-problem" style="margin-top:8px"><span class="rp-line">Line ' + firstBad.error.line +
+           '</span><span class="rp-msg">' + esc(firstBad.error.msg) + "</span></div>";
+    } else {
+      h += "<b>The first case that gave the wrong answer</b>";
+      h += '<div class="wg"><div><span class="k">Expected</span><pre>' + esc(firstBad.want) + "</pre></div>";
+      h += '<div><span class="k">Yours gave</span><pre>' + esc(firstBad.got || "(nothing)") + "</pre></div></div>";
+    }
+    h += '<p class="note-small">The other cases stay hidden. Fix the logic rather than the output \u2014 they use different data.</p></div>';
+  }
+
+  if (res.reqs.length){
+    h += '<div class="mark-band"><span class="k">Is it written properly</span><b>' + res.sMarks + " / " + res.split.structure +
+         '</b><span class="d">the question needs these</span></div>';
+    res.reqs.forEach(function(r){
+      h += '<div class="case ' + (r.ok ? "ok" : "bad") + '"><span class="cm">' + (r.ok ? "\u2713" : "\u2717") +
+           "</span><span>" + esc(r.t) + "</span></div>";
+    });
+  }
+  return h + "</div>";
 }
 
 /* ============================================================================
@@ -2198,8 +2353,8 @@ function finishExam(auto){
     '<div class="label">Time ' + (auto === true ? "is up" : "stopped") + "</div>" +
     '<h2 style="font-size:var(--step-2);margin:.3rem 0 .6rem">Mark your paper</h2>' +
     '<div class="prose">' + runLine +
-    "<p>Every mark scheme below is now open. Work through them one at a time and tick only the points your answer genuinely earned. Then press the button to total it up.</p></div>" +
-    '<div class="btn-row"><button class="btn btn-primary" id="exTotal">Total my score</button>' +
+    "<p>Press the button to mark the paper. Answers that can be run are marked by machine against hidden test cases, so the score is worked out rather than claimed. A handful of questions still need you to tick honestly \u2014 they are labelled.</p></div>" +
+    '<div class="btn-row"><button class="btn btn-primary" id="exTotal">Mark my paper</button>' +
     '<button class="btn" id="exAgain">New paper</button></div><div id="exResult" style="margin-top:18px"></div>';
   body.insertBefore(head, body.firstChild);
   window.scrollTo(0,0);
@@ -2217,6 +2372,16 @@ function finishExam(auto){
       if (q.kind === "mcq"){
         const picked = body.querySelector('input[name="mcq_' + idp + '"]:checked');
         got = (picked && Number(picked.value) === q.correct) ? q.marks : 0;
+      }
+      if (canAutoMark(q)){                       // marked by machine, not by claim
+        const ta = body.querySelector("#ta_" + idp);
+        const answer = ta ? ta.value.trim() : "";
+        if (answer){
+          const res = autoMark(q, answer);
+          got = res.awarded;
+          const slot = body.querySelector("#mk_" + idp);
+          if (slot) slot.innerHTML = markReportHtml(res);
+        } else got = 0;
       }
       if (EXAM.failed && EXAM.failed[q.id]) got = 0;   // it did not run: no marks
       score += got;

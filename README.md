@@ -36,14 +36,30 @@ say it, aimed at exactly what loses marks:
 
 Mixing dialects is never an error, only advice — you are never blocked mid-question.
 
+**It marks your answer for you, and you cannot cheat it.** Press *Mark my answer* and the app runs
+your code against **several hidden test cases** whose expected output came from running the verified
+model answer — then checks the source for the constructs the question actually requires. The score is
+worked out, not claimed.
+
+| What you submit | What it scores |
+|---|---|
+| A correct answer | full marks |
+| The right answer printed as a literal | 1 / 5 — it passes one case and fails the rest |
+| Correct logic, but not the method the question asked for | 3 / 5 — works, loses the structure marks |
+| `DIV` and `MOD` hidden inside a comment | 0 / 5 — comments are stripped before checking |
+| Code that does not run | 0 / 5 |
+
+You see which cases passed, and the input and expected output of the **first** failure only — enough to
+debug, not enough to hardcode your way out, because the others use different data. Exam mode marks the
+whole paper this way when the timer stops.
+
 **98 original questions.** Write-pseudocode, trace tables marked cell by cell, spot-the-error, and
 quick syntax drills. Every one has a three-step tip ladder (a nudge, then the technique, then close
 to the answer), a commented model answer, and a mark scheme you tick yourself.
 
-**Practice and exam behave differently on purpose.** In Practice you run your answer as often as you
-like — read the error, fix it, run again. In Exam mode the Run button is gone; when the timer stops
-every executable answer is run **once**, and code that does not run scores **zero** with its mark
-scheme locked.
+**Practice and exam behave differently on purpose.** In Practice you run and mark your answer as often
+as you like — read the error, fix it, try again. In Exam mode the Run button is gone; when the timer
+stops the whole paper is marked in one pass, and code that does not run scores **zero**.
 
 **A runnable library.** 78 entries covering every keyword and built-in function, each with a
 signature, level badges, a worked example you can run and edit, and the mistake people actually make.
@@ -77,8 +93,14 @@ Environment tab. Never commit a filled-in `.env` — this repository is public.
 ## Verifying
 
 ```
-node tools/verify.mjs
+node tools/verify.mjs      # every model answer and library example still works
+node tools/bake-tests.mjs  # regenerate tests.js after editing any question bank
 ```
+
+`bake-tests.mjs` runs each model answer against its input sets and writes the expected outputs into
+`tests.js`, so the marking data can never drift from the questions. It reports which questions have
+only a single case — those are the ones where hardcoding is not detectable by output alone and the
+structural checks carry the mark.
 
 Runs every model answer and every library example through the real interpreter and checks the output
 matches what is documented; that mark schemes sum to the stated marks; that every question has three
