@@ -44,10 +44,16 @@ worked out, not claimed.
 | What you submit | What it scores |
 |---|---|
 | A correct answer | full marks |
+| A correct answer with a spelling slip ("secounds") or its own prompt wording | full marks |
 | The right answer printed as a literal | 1 / 5 — it passes one case and fails the rest |
 | Correct logic, but not the method the question asked for | 3 / 5 — works, loses the structure marks |
 | `DIV` and `MOD` hidden inside a comment | 0 / 5 — comments are stripped before checking |
 | Code that does not run | 0 / 5 |
+
+Output is compared the way an examiner reads it (`marking.js`): the numbers and TRUE/FALSE must be
+exactly right and every word must be there, but a spelling slip, capitals, a plural, or the wording of
+a prompt do not cost marks. "Valid" is still not "Invalid", and "found" is not "not found".
+`tools/verify.mjs` checks that no two hidden cases of a question could pass for each other.
 
 You see which cases passed, and the input and expected output of the **first** failure only — enough to
 debug, not enough to hardcode your way out, because the others use different data. Exam mode marks the

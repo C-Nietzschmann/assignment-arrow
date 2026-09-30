@@ -19,8 +19,10 @@ require(path.join(root, "bank-extra.js"));
 require(path.join(root, "library.js"));
 require(path.join(root, "lessons.js"));
 require(path.join(root, "lessons-igcse.js"));
+require(path.join(root, "tests.js"));
+require(path.join(root, "marking.js"));
 
-const { PseudoRun } = globalThis;
+const { PseudoRun, ArrowMarking } = globalThis;
 const RED = "\x1b[31m", GRN = "\x1b[32m", DIM = "\x1b[2m", OFF = "\x1b[0m";
 
 let pass = 0;
@@ -123,6 +125,45 @@ for (const L of LESSONS){
       else pass++;
     }
   }
+}
+
+/* ---------- 5. fair marking: wording is forgiven, values and meaning are not ---------- */
+const SAME = [
+  ["Enter a number of seconds: \n1 hour(s) 2 minute(s) 5 secound(s)", "Enter a number of seconds: \n1 hour(s) 2 minute(s) 5 second(s)", "a spelling slip"],
+  ["How many seconds?\n1 hours 2 minutes 5 seconds", "Enter a number of seconds: \n1 hour(s) 2 minute(s) 5 second(s)", "another prompt, other wording"],
+  ["1 hour(s) 2 minute(s) 5 second(s)", "Enter a number of seconds: \n1 hour(s) 2 minute(s) 5 second(s)", "no prompt at all"],
+  ["Charge: 3.50", "Charge: 3.5", "3.50 is 3.5"],
+  ["Parcel refused - to heavy", "Parcel refused - too heavy", "to / too"],
+  ["The colour is grey", "Colour: grey", "words of your own on top"],
+];
+const DIFFERENT = [
+  ["Valid", "Invalid", "valid is not invalid"], ["Invalid", "Valid", "invalid is not valid"],
+  ["5 is odd", "5 is even", "odd is not even"], ["Record 5 found", "Record 5 not found", "a missing NOT"],
+  ["Record 5 not found", "Record 5 found", "an extra NOT"], ["Pass", "Fail", "pass is not fail"],
+  ["Weekday", "Weekend", "weekday is not weekend"], ["Found: FALSE", "Found: TRUE", "TRUE is not FALSE"],
+  ["1 hour(s) 2 minute(s) 6 second(s)", "1 hour(s) 2 minute(s) 5 second(s)", "a wrong number"],
+  ["1 hour(s) 2 minute(s)", "1 hour(s) 2 minute(s) 5 second(s)", "a missing number"],
+  ["Charge: 6.75\nThank you", "Charge: 6.75", "an extra line"], [null, "Charge: 6.75", "it did not run"],
+];
+for (const [got, want, what] of SAME){
+  if (ArrowMarking.sameOutput(got, want).ok) pass++; else fail("marking", "should pass (" + what + "): " + JSON.stringify(got) + " for " + JSON.stringify(want));
+}
+for (const [got, want, what] of DIFFERENT){
+  if (!ArrowMarking.sameOutput(got, want).ok) pass++; else fail("marking", "should fail (" + what + "): " + JSON.stringify(got) + " for " + JSON.stringify(want));
+}
+/* two hidden cases of one question must never pass for each other: printing one
+   case's answer as a literal still fails the rest (cases whose own test code
+   prints different words are not compared - an answer cannot print those) */
+for (const [id, spec] of Object.entries(globalThis.TESTS || {})){
+  const q = QUESTIONS.find(x => x.id === id);
+  const base = (q && q.run) || {};
+  const setupOf = t => JSON.stringify([t.setup ?? base.setup ?? "", t.harness ?? base.harness ?? ""]);
+  spec.tests.forEach((a, i) => spec.tests.forEach((b, j) => {
+    if (j <= i || a.out === b.out || setupOf(a) !== setupOf(b)) return;
+    if (ArrowMarking.sameOutput(a.out, b.out).ok || ArrowMarking.sameOutput(b.out, a.out).ok)
+      fail("marking " + id, "cases " + (i + 1) + " and " + (j + 1) + " would pass for each other");
+    else pass++;
+  }));
 }
 
 /* ---------- report ---------- */
