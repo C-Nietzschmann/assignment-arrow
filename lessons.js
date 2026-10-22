@@ -723,10 +723,16 @@ OUTPUT X`,
 
     {t:"h",text:"Opening and closing"},
     {t:"code",src:
-`OPENFILE "Students.txt" FOR READ
-OPENFILE "Students.txt" FOR WRITE      // creates new, or wipes what is there
-OPENFILE "Students.txt" FOR APPEND     // adds to the end, keeps what is there
+`// A file is only ever open in one mode at a time, so each is closed
+// before the next is opened.
 
+OPENFILE "Students.txt" FOR WRITE      // creates new, or wipes what is there
+CLOSEFILE "Students.txt"
+
+OPENFILE "Students.txt" FOR APPEND     // adds to the end, keeps what is there
+CLOSEFILE "Students.txt"
+
+OPENFILE "Students.txt" FOR READ       // reads from the beginning
 CLOSEFILE "Students.txt"`},
     {t:"note",kind:"warn",label:"WRITE destroys data",html:`<p>Opening an existing file <em class="term">FOR WRITE</em> deletes its entire contents first. If the question says &ldquo;add a new record to the file&rdquo;, the answer is <em class="term">APPEND</em>. Choosing WRITE there loses the mark and, in reality, the data.</p>`},
 
