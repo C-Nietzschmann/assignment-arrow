@@ -26,6 +26,12 @@ services:
       - path: /*
         name: Referrer-Policy
         value: no-referrer
+      # Lessons and questions change often. Always revalidate so a student
+      # never sits on a stale copy; unchanged files still come back as a
+      # cheap 304 rather than a re-download.
       - path: /*.js
         name: Cache-Control
-        value: public, max-age=300, must-revalidate
+        value: no-cache
+      - path: /index.html
+        name: Cache-Control
+        value: no-cache
