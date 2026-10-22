@@ -774,10 +774,12 @@ OUTPUT "The file holds ", Count, " records"`},
     {t:"note",kind:"warn",label:"If your notes show REPEAT ... UNTIL EOF",html:`<p>Plenty of teaching material writes the read loop the other way round:</p>
 <p><em class="term">REPEAT &nbsp; READFILE f, Line &nbsp; OUTPUT Line &nbsp; UNTIL EOF(f)</em></p>
 <p>On a file that has something in it, that works &mdash; it reads the last line, EOF becomes TRUE and the loop stops. <strong>On an empty file it breaks</strong>, because REPEAT reads before it tests, and there is nothing to read. Paste it into the editor with an empty file and this app will show you the exact error.</p>
-<p>The worked example in the Cambridge pseudocode guide uses <em class="term">WHILE NOT EOF</em>, and that is the version that is safe in every case. If your teacher taught the REPEAT form, use theirs for their marking &mdash; just know why the WHILE version cannot fail.</p>`},
+<p>The coursebook example uses the REPEAT form, which is why most teaching does. The worked example in the Cambridge pseudocode guide uses <em class="term">WHILE NOT EOF</em>, and that is the version that cannot fail. Write whichever your teacher marks &mdash; just know where the REPEAT one breaks.</p>`},
 
-    {t:"note",kind:"exam",label:"OPEN or OPENFILE?",html:`<p>Some slides and textbooks write <em class="term">OPEN myFile FOR WRITE</em> and <em class="term">CLOSEFILE(myFile)</em> with brackets. The Cambridge pseudocode guide prints <em class="term">OPENFILE</em> and closes without brackets &mdash; <em class="term">CLOSEFILE "myFile.txt"</em>.</p>
-<p>This app runs all of those forms so you are never blocked, and it tells you which one the guide uses. Write <em class="term">OPENFILE</em> in the exam.</p>`},
+    {t:"note",kind:"exam",label:"OPEN or OPENFILE?",html:`<p>Two sources disagree, and both are real.</p>
+<p>The <strong>Hodder coursebook</strong> (Watson &amp; Williams), which most 9618 teaching follows, writes <em class="term">OPEN myFile FOR WRITE</em>. If your notes say OPEN, your teacher is following the book, not making a mistake.</p>
+<p>The <strong>Cambridge pseudocode guide</strong>, which is what the exam papers themselves are printed from, writes <em class="term">OPENFILE</em>. Both close the same way, without brackets: <em class="term">CLOSEFILE myFile</em>.</p>
+<p>This app runs <em class="term">OPEN</em>, <em class="term">OPENFILE</em>, and <em class="term">CLOSEFILE(myFile)</em> with brackets, so you are never blocked by whose notation you learned. In the exam, <em class="term">OPENFILE</em> is the safer one &mdash; it is what the paper in front of you will use.</p>`},
 
     {t:"h",text:"Searching a file"},
     {t:"code",src:
