@@ -765,6 +765,14 @@ OUTPUT "The file holds ", Count, " records"`},
       `<em class="term">READFILE</em> takes the file name and the variable to fill, in that order.`
     ]},
 
+    {t:"note",kind:"warn",label:"If your notes show REPEAT ... UNTIL EOF",html:`<p>Plenty of teaching material writes the read loop the other way round:</p>
+<p><em class="term">REPEAT &nbsp; READFILE f, Line &nbsp; OUTPUT Line &nbsp; UNTIL EOF(f)</em></p>
+<p>On a file that has something in it, that works &mdash; it reads the last line, EOF becomes TRUE and the loop stops. <strong>On an empty file it breaks</strong>, because REPEAT reads before it tests, and there is nothing to read. Paste it into the editor with an empty file and this app will show you the exact error.</p>
+<p>The worked example in the Cambridge pseudocode guide uses <em class="term">WHILE NOT EOF</em>, and that is the version that is safe in every case. If your teacher taught the REPEAT form, use theirs for their marking &mdash; just know why the WHILE version cannot fail.</p>`},
+
+    {t:"note",kind:"exam",label:"OPEN or OPENFILE?",html:`<p>Some slides and textbooks write <em class="term">OPEN myFile FOR WRITE</em> and <em class="term">CLOSEFILE(myFile)</em> with brackets. The Cambridge pseudocode guide prints <em class="term">OPENFILE</em> and closes without brackets &mdash; <em class="term">CLOSEFILE "myFile.txt"</em>.</p>
+<p>This app runs all of those forms so you are never blocked, and it tells you which one the guide uses. Write <em class="term">OPENFILE</em> in the exam.</p>`},
+
     {t:"h",text:"Searching a file"},
     {t:"code",src:
 `DECLARE Target : STRING
