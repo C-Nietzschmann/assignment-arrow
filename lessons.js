@@ -15,7 +15,7 @@ __g.LESSONS_ALEVEL = [
     {t:"p",html:`Pseudocode in 9618 is not a programming language &mdash; nothing runs it. It is a way of writing an algorithm so precisely that a competent programmer could turn it into working code without asking you a single question. That is the standard an examiner marks against.`},
     {t:"p",html:`Because nothing runs it, you get no error messages. The only feedback is the mark scheme, months later. So the habits below have to be built in advance.`},
 
-    {t:"h",text:"Rule 1 — assignment is an arrow, never an equals sign"},
+    {t:"h",text:"Rule 1 &mdash; assignment is an arrow, never an equals sign"},
     {t:"p",html:`The single most common slip. <strong>&#8592;</strong> means <em>put this value into this variable</em>. <strong>=</strong> means <em>are these two things equal?</em> and belongs only inside a condition.`},
     {t:"code",src:
 `Total  <- 0            // correct: put 0 into Total
@@ -25,7 +25,7 @@ IF Total = 0 THEN      // correct: = is a comparison here
     OUTPUT "Empty"
 ENDIF`},
 
-    {t:"h",text:"Rule 2 — indent every block, and close it"},
+    {t:"h",text:"Rule 2 &mdash; indent every block, and close it"},
     {t:"p",html:`Each opening keyword has a matching closing keyword and the statements between them are indented, normally by four spaces. Indentation is not decoration; it is how the examiner sees which statements are inside the loop.`},
     {t:"code",src:
 `IF Mark >= 50 THEN
@@ -39,10 +39,10 @@ FOR i <- 1 TO 10
 NEXT i`},
     {t:"p",html:`The pairs you must never leave open: <em class="term">IF&hellip;ENDIF</em>, <em class="term">CASE OF&hellip;ENDCASE</em>, <em class="term">FOR&hellip;NEXT</em>, <em class="term">WHILE&hellip;ENDWHILE</em>, <em class="term">REPEAT&hellip;UNTIL</em>, <em class="term">PROCEDURE&hellip;ENDPROCEDURE</em>, <em class="term">FUNCTION&hellip;ENDFUNCTION</em>, <em class="term">TYPE&hellip;ENDTYPE</em>, <em class="term">CLASS&hellip;ENDCLASS</em>.`},
 
-    {t:"h",text:"Rule 3 — keywords in capitals, your own names in CamelCase"},
+    {t:"h",text:"Rule 3 &mdash; keywords in capitals, your own names in CamelCase"},
     {t:"p",html:`Syllabus keywords are written in upper case. Identifiers you invent start with a capital and run words together: <em class="term">StudentName</em>, <em class="term">TotalScore</em>, <em class="term">NumberOfItems</em>. Names should describe the thing. <em class="term">x</em> is acceptable for a loop counter and nowhere else.`},
 
-    {t:"h",text:"Rule 4 — comment the intent, not the obvious"},
+    {t:"h",text:"Rule 4 &mdash; comment the intent, not the obvious"},
     {t:"p",html:`A comment starts with <em class="term">//</em>. Do not narrate what the line plainly says. Explain <em>why</em>, or label a section of the algorithm.`},
     {t:"code",src:
 `Count <- Count + 1        // BAD: add one to Count. We can see that.
@@ -50,7 +50,7 @@ NEXT i`},
 // Skip the header row before totalling   <- GOOD: explains the reason
 READFILE DataFile, Line`},
 
-    {t:"h",text:"Rule 5 — declare before you use"},
+    {t:"h",text:"Rule 5 &mdash; declare before you use"},
     {t:"p",html:`State every variable and its type before the algorithm body. Some questions do not demand it, but it is never wrong and it is often worth a mark on its own.`},
 
     {t:"note",kind:"exam",label:"Examiner note",html:`<p>When a question says <strong>&ldquo;Write pseudocode&rdquo;</strong> you must use this notation. When it says <strong>&ldquo;Write program code&rdquo;</strong> you may use Python, Java, VB.NET or C# instead &mdash; and then you must follow that language properly, including its own syntax. Read which one is being asked for. Answering the wrong one is an expensive mistake.</p>`},
@@ -292,7 +292,7 @@ ENDCASE`,
   blocks:[
     {t:"p",html:`The rule for choosing: <strong>do you know in advance how many times it repeats?</strong> If yes, use <em class="term">FOR</em>. If no, you need a condition-controlled loop &mdash; and then ask whether the body must run at least once.`},
 
-    {t:"h",text:"FOR — a known number of repetitions"},
+    {t:"h",text:"FOR &mdash; a known number of repetitions"},
     {t:"code",src:
 `FOR Counter <- 1 TO 10
     OUTPUT Counter
@@ -307,7 +307,7 @@ FOR i <- 0 TO 100 STEP 5      // 0, 5, 10 ... 100
 NEXT i`},
     {t:"p",html:`The counter is assigned with an arrow, and <em class="term">NEXT</em> must name the same counter variable. Both halves are marked.`},
 
-    {t:"h",text:"WHILE — test first, may run zero times"},
+    {t:"h",text:"WHILE &mdash; test first, may run zero times"},
     {t:"code",src:
 `WHILE <condition> DO
     <statements>
@@ -323,7 +323,7 @@ WHILE Count < 10 DO
     Count <- Count + 1
 ENDWHILE`},
 
-    {t:"h",text:"REPEAT — test last, always runs at least once"},
+    {t:"h",text:"REPEAT &mdash; test last, always runs at least once"},
     {t:"code",src:
 `REPEAT
     <statements>
@@ -746,7 +746,7 @@ INPUT Name
 WRITEFILE "Students.txt", Name
 CLOSEFILE "Students.txt"`},
 
-    {t:"h",text:"Reading until the end — the EOF loop"},
+    {t:"h",text:"Reading until the end &mdash; the EOF loop"},
     {t:"p",html:`<em class="term">EOF(FileName)</em> returns TRUE once there is nothing left to read. Learn this exact shape; a large share of file marks are for reproducing it correctly.`},
     {t:"code",src:
 `DECLARE LineOfText : STRING
@@ -951,7 +951,7 @@ Library[1].OnLoan <- TRUE`}
 
 {
   id:"L12", levels:["a2"], title:"Classes and objects (Paper 4)",
-  blurb:"Encapsulation, constructors, getters and setters, and inheritance — written the way the syllabus writes them.",
+  blurb:"Encapsulation, constructors, getters and setters, and inheritance - written the way the syllabus writes them.",
   blocks:[
     {t:"p",html:`A record groups data. A <strong>class</strong> groups data <em>and</em> the operations on it, then hides the data so that nothing outside can corrupt it. That hiding is called <strong>encapsulation</strong>, and it is the point of the whole topic.`},
 
@@ -1058,16 +1058,16 @@ OUTPUT Shape.GetArea()              // 40.0`}
   blocks:[
     {t:"p",html:`Most people lose marks on long pseudocode questions not because they cannot code, but because they start writing before they know what they are writing. Five minutes of structure beats twenty minutes of guessing.`},
 
-    {t:"h",text:"Step 1 — underline the verbs"},
+    {t:"h",text:"Step 1 &mdash; underline the verbs"},
     {t:"p",html:`Read the question with a pen. Every instruction verb is a step of the algorithm and usually a mark: <em>input</em>, <em>validate</em>, <em>count</em>, <em>total</em>, <em>compare</em>, <em>store</em>, <em>output</em>. A question with six verbs is roughly a six-mark answer, and the order they appear in is usually the order to write them.`},
 
-    {t:"h",text:"Step 2 — list the data before the logic"},
+    {t:"h",text:"Step 2 &mdash; list the data before the logic"},
     {t:"p",html:`Write the declarations first. What is coming in, what is being accumulated, what is going out. Doing this reveals what you have missed: if you are asked for an average and have no counter, you now know a counter is needed.`},
 
-    {t:"h",text:"Step 3 — choose the loop, then fill it"},
+    {t:"h",text:"Step 3 &mdash; choose the loop, then fill it"},
     {t:"p",html:`Decide the shape before the detail: is this fixed repetition (FOR), condition-controlled (WHILE), or must-run-once validation (REPEAT)? Write the opening and closing lines of the loop immediately, then write the body inside them. You cannot then forget <em class="term">NEXT</em> or <em class="term">ENDWHILE</em>.`},
 
-    {t:"h",text:"Step 4 — handle the edge, then output"},
+    {t:"h",text:"Step 4 &mdash; handle the edge, then output"},
     {t:"p",html:`Before you finish, ask the three questions that cost marks: what if there are zero items? What if nothing matched? What if the input is out of range? A single <em class="term">IF</em> guarding a division or a &ldquo;not found&rdquo; message is often a whole mark.`},
 
     {t:"h",text:"A worked example"},
@@ -1106,7 +1106,7 @@ OUTPUT Passes, " out of ", ClassSize, " passed"`},
     {t:"note",kind:"exam",label:"Timing",html:`<p>Marks are spread evenly, so never spend fifteen minutes perfecting a six-mark question while a later one sits blank. If you are stuck, write the declarations, the loop skeleton and the output lines, leave the hard middle, and come back. A skeleton with the right structure reliably scores; a blank page never does.</p>`},
 
     {t:"check",
-      q:`Apply the method to this, writing only the declarations and the loop skeleton — no body: "Numbers are entered until a negative number is entered. Output the largest number entered and how many were entered."`,
+      q:`Apply the method to this, writing only the declarations and the loop skeleton &mdash; no body: "Numbers are entered until a negative number is entered. Output the largest number entered and how many were entered."`,
       marks:4,
       a:`<p>Unknown count and the first value must be read before it can be tested, so it is an input-before-WHILE. Marks for: sensible declarations including a counter and a largest-so-far; the priming input before the loop; the correct loop condition; the re-input inside the loop.</p>`,
       acode:`DECLARE Number  : INTEGER
