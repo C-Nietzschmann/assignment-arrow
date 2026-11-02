@@ -1647,7 +1647,15 @@ Interp.prototype.exec = function(n, scope){
       if (f.pos >= f.lines.length)
         this.err(n.line, '"' + name + '" has no more lines, but READFILE asked for another one.',
           "Guard the read with  WHILE NOT EOF(\"" + name + "\") DO  so it stops at the end.");
-      this.lval(n.target, scope).set(f.lines[f.pos++]);
+      /* The syllabus is explicit: a line is read into a STRING. Catching it
+         here gives the real rule instead of a confusing type-mismatch. */
+      const dest = this.lval(n.target, scope);
+      const dt = dest.box && dest.box.t;
+      if (dt && dt !== "STRING")
+        this.err(n.line, "READFILE reads a line of text, so '" + dest.name + "' must be a STRING, not " +
+          ("AEIOU".indexOf(dt[0]) === -1 ? "a " : "an ") + dt + ".",
+          "Read into a STRING first, then convert it: Value <- STRING_TO_NUM(Line)");
+      dest.set(f.lines[f.pos++]);
       return;
     }
     case "WriteFile": {
@@ -1656,7 +1664,11 @@ Interp.prototype.exec = function(n, scope){
       if (!f || (f.mode !== "WRITE" && f.mode !== "APPEND"))
         this.err(n.line, '"' + name + '" is not open for writing.',
           'Open it with FOR WRITE to start a new file, or FOR APPEND to add to the end of an existing one.');
-      f.lines.push(fmt(this.ev(n.value, scope)));
+      const val = this.ev(n.value, scope);
+      if (typeof val === "number")
+        this.warn(n.line, "WRITEFILE writes a line of text. Convert the number first: WRITEFILE " +
+          name + ", NUM_TO_STRING(Value)");
+      f.lines.push(fmt(val));
       return;
     }
     case "CloseFile": {

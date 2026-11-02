@@ -765,6 +765,11 @@ ENDWHILE
 CLOSEFILE "Students.txt"
 
 OUTPUT "The file holds ", Count, " records"`},
+    {t:"note",kind:"warn",label:"A line is always read into a STRING",html:`<p>The syllabus is explicit about this: with both <em class="term">READFILE</em> and <em class="term">WRITEFILE</em>, the variable <strong>must be of data type STRING</strong>. A text file is lines of characters, so that is what comes out of it.</p>
+<p>If you need the number, read it as text and convert it afterwards:</p>
+<p><em class="term">READFILE "Scores.txt", Line</em> &nbsp;then&nbsp; <em class="term">Value &#8592; STRING_TO_NUM(Line)</em></p>
+<p>Reading straight into an INTEGER is one of the most common file-handling errors there is. This app stops you and says so.</p>`},
+
     {t:"list",items:[
       `It must be <em class="term">WHILE</em>, not <em class="term">REPEAT</em>: an empty file has to read zero lines, and a REPEAT would try to read one.`,
       `<em class="term">NOT EOF(...)</em> &mdash; carry on <em>while it is not the end</em>. Writing <em class="term">WHILE EOF(...)</em> reverses the logic and reads nothing.`,
