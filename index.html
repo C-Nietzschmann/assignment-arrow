@@ -923,6 +923,7 @@ table.ref td.d{ font-family:var(--prose); color:var(--ink-2); }
 <script src="interpreter.js"></script>
 <script src="lessons.js"></script>
 <script src="lessons-igcse.js"></script>
+<script src="lessons-extra.js"></script>
 <script src="bank.js"></script>
 <script src="bank-igcse.js"></script>
 <script src="bank-extra.js"></script>
@@ -934,7 +935,7 @@ table.ref td.d{ font-family:var(--prose); color:var(--ink-2); }
 "use strict";
 
 /* Data arrives from the files above. */
-const LESSONS    = (window.LESSONS_ALEVEL   || []).concat(window.LESSONS_IGCSE   || []);
+const LESSONS    = (window.LESSONS_ALEVEL   || []).concat(window.LESSONS_EXTRA || [], window.LESSONS_IGCSE || []);
 const QUESTIONS  = (window.QUESTIONS_ALEVEL || []).concat(window.QUESTIONS_IGCSE || [], window.QUESTIONS_EXTRA || []);
 const DIFFICULTY = Object.assign({}, window.DIFFICULTY_ALEVEL || {}, window.DIFFICULTY_IGCSE || {});
 const RUNSPECS   = Object.assign({}, window.RUNSPECS_ALEVEL   || {}, window.RUNSPECS_IGCSE   || {});

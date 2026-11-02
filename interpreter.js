@@ -776,13 +776,18 @@ function fmt(v){
 function Interp(opts){
   this.level = (opts && opts.level) || null;
   this.echo  = !!(opts && opts.echo);
-  /* A replay must reproduce the run exactly, so randomness is seeded rather
-     than drawn fresh each time. */
-  let seed = ((opts && opts.seed) || 1) >>> 0;
-  this.random = function(){
-    seed = (seed * 1664525 + 1013904223) >>> 0;
-    return seed / 4294967296;
-  };
+  /* A replay must reproduce the run exactly, so a caller that replays passes
+     a seed. A caller that does not is left with Math.random - which may itself
+     have been seeded by that caller for the length of the run. */
+  if (opts && opts.seed != null){
+    let seed = opts.seed >>> 0;
+    this.random = function(){
+      seed = (seed * 1664525 + 1013904223) >>> 0;
+      return seed / 4294967296;
+    };
+  } else {
+    this.random = function(){ return Math.random(); };
+  }
   opts = opts || {};
   this.out = [];
   this.warnings = [];

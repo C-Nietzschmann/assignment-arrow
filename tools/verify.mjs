@@ -19,6 +19,7 @@ require(path.join(root, "bank-extra.js"));
 require(path.join(root, "library.js"));
 require(path.join(root, "lessons.js"));
 require(path.join(root, "lessons-igcse.js"));
+require(path.join(root, "lessons-extra.js"));
 require(path.join(root, "tests.js"));
 require(path.join(root, "marking.js"));
 
@@ -115,7 +116,7 @@ for (const s of (globalThis.SNIPPETS || [])){
 }
 
 /* ---------- 4. lesson check questions that ship code must run ------------- */
-const LESSONS = (globalThis.LESSONS_ALEVEL || []).concat(globalThis.LESSONS_IGCSE || []);
+const LESSONS = (globalThis.LESSONS_ALEVEL || []).concat(globalThis.LESSONS_EXTRA || [], globalThis.LESSONS_IGCSE || []);
 for (const L of LESSONS){
   if (!L.levels || !L.levels.length) fail("lesson " + L.id, "no levels tag");
   for (const b of L.blocks){
