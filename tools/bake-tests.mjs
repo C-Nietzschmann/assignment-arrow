@@ -43,7 +43,7 @@ const REQ_RULES = [
   [/\b(MID|SUBSTRING)\s*\(/,        "(MID|SUBSTRING)\\s*\\(",        "MID or SUBSTRING"],
   [/\b(TO_UPPER|UCASE|TO_LOWER|LCASE)\s*\(/, "(TO_UPPER|UCASE|TO_LOWER|LCASE)\\s*\\(", "a case-folding function"],
   [/\bEOF\s*\(/,                    "EOF\\s*\\(",                    "EOF"],
-  [/\bOPENFILE\b/,                  "OPENFILE",                     "OPENFILE"],
+  [/\b(OPENFILE|OPEN)\b/,           "\\b(OPENFILE|OPEN)\\b",           "OPEN (or OPENFILE)"],
   [/\bCLOSEFILE\b/,                 "CLOSEFILE",                    "CLOSEFILE"],
   [/\bFUNCTION\b/,                  "FUNCTION",                     "a FUNCTION"],
   [/\bRETURNS\b/,                   "RETURNS",                      "RETURNS on the header"],
